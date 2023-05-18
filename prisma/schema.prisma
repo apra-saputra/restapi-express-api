@@ -11,17 +11,16 @@ datasource db {
 }
 
 model Users {
-  id          Int         @id @default(autoincrement())
-  name        String
-  username    String      @unique
-  email       String      @unique
-  active      Boolean?
-  phoneNumber String?
-  address     String?
-  position    String
-  division    String
-  senders     Senders?
-  validaters  Validaters?
+  id         Int         @id @default(autoincrement())
+  name       String
+  username   String      @unique
+  email      String      @unique
+  active     Boolean?
+  position   String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  senders    Senders?
+  validaters Validaters?
 }
 
 model Senders {
@@ -30,6 +29,8 @@ model Senders {
   position  String
   active    Boolean
   UserId    Int         @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   workflows Workflows[]
   Orders    Orders[]
   Users     Users       @relation(fields: [UserId], references: [id])
@@ -41,24 +42,28 @@ model Validaters {
   position  String
   active    Boolean
   UserId    Int         @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
   workflows Workflows[]
   Users     Users       @relation(fields: [UserId], references: [id])
 }
 
 model Flows {
-  id       Int        @id @default(autoincrement())
-  name     String
-  active   Boolean?
-  Workflow Workflows?
-  Orders   Orders[]
+  id        Int         @id @default(autoincrement())
+  name      String
+  active    Boolean?
+  createdAt DateTime    @default(now())
+  Workflow  Workflows[]
+  Orders    Orders[]
 }
 
 model Workflows {
   id             Int         @id @default(autoincrement())
-  FlowId         Int         @unique
+  FlowId         Int
   ValidateUserId Int
   OwnerUserId    Int
   active         Boolean
+  createdAt      DateTime    @default(now())
   Flows          Flows       @relation(fields: [FlowId], references: [id])
   Validaters     Validaters? @relation(fields: [ValidateUserId], references: [id])
   Senders        Senders?    @relation(fields: [OwnerUserId], references: [id])
@@ -69,7 +74,18 @@ model Tags {
   name      String
   active    Boolean
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   Products  Products[]
+  Stocks    Stocks?
+}
+
+model Stocks {
+  id        Int      @id @default(autoincrement())
+  TagId     Int      @unique
+  qty       Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Tags      Tags     @relation(fields: [TagId], references: [id])
 }
 
 model Products {
@@ -95,6 +111,7 @@ model Orders {
   totalAmount Int
   message     String?
   FlowId      Int
+  locked      Boolean
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   Products    Products? @relation(fields: [ProductId], references: [id])

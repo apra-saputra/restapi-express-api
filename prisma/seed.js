@@ -1,7 +1,28 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-async function main() {
+const tagsSeeder = require("./seeder/tags");
+const flowsSeeder = require("./seeder/flows");
+
+async function sendersValidatersSeed() {
+  const data = [
+    { username: "mgr_test", position: "manager", active: true, UserId: 1 },
+    { username: "spv_test", position: "supervisor", active: true, UserId: 2 },
+  ];
+
+  const sender = [
+    {
+      username: "operator_test",
+      position: "purchesing",
+      active: true,
+      UserId: 1,
+    },
+  ];
+  await prisma.validaters.createMany({ data });
+  await prisma.senders.createMany({ data: sender });
+}
+
+async function userSeed() {
   const alice = await prisma.Users.upsert({
     where: { email: "alice@test.com" },
     update: {},
@@ -10,10 +31,7 @@ async function main() {
       username: "mgr_test",
       email: "alice@test.com",
       active: true,
-      phoneNumber: "12345",
-      address: "jalan",
       position: "manager",
-      division: "head",
     },
   });
 
@@ -25,10 +43,7 @@ async function main() {
       username: "spv_test",
       email: "udin@test.com",
       active: true,
-      phoneNumber: "12345",
-      address: "bukan jalan",
       position: "supervisor",
-      division: "head",
     },
   });
 
@@ -40,15 +55,21 @@ async function main() {
       username: "operator_test",
       email: "john@test.com",
       active: true,
-      phoneNumber: "12345",
-      address: "bukan jalan",
-      position: "operator",
-      division: "regional",
+      position: "purchesing",
     },
   });
-
-  console.log({ alice, udin, john });
 }
+
+async function main() {
+  console.log(`Start seeding ...`);
+  await tagsSeeder();
+  await userSeed();
+  await sendersValidatersSeed();
+  await flowsSeeder();
+
+  console.log("Seeding complete...");
+}
+
 main()
   .then(async () => {
     await prisma.$disconnect();

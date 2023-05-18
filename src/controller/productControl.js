@@ -7,6 +7,9 @@ module.exports = class ProductControl {
   static async getProducts(req, res, next) {
     try {
       const data = await prisma.products.findMany();
+
+      if (!data.length) throw { name: "NOT_FOUND" };
+
       response(res, 200, "SUCCESS GET PRODUCTS", data);
     } catch (error) {
       next(error);
@@ -16,8 +19,11 @@ module.exports = class ProductControl {
   static async getProductById(req, res, next) {
     try {
       const data = await prisma.products.findUnique({
-        where: { id: req.params.id },
+        where: { id: Number(req.params.id) },
       });
+
+      if (!data) throw { name: "NOT_FOUND" };
+
       response(res, 200, "SUCCESS GET PRODUCT", data);
     } catch (error) {
       next(error);
@@ -30,6 +36,7 @@ module.exports = class ProductControl {
         where: { id: req.params.id },
         data: {},
       });
+      
       response(res, 200, "SUCCESS UPDATE PRODUCT", data);
     } catch (error) {
       next(error);

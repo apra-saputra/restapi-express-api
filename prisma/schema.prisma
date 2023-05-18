@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id          Int         @id @default(autoincrement())
+  name        String
+  username    String      @unique
+  email       String      @unique
+  active      Boolean?
+  phoneNumber String?
+  address     String?
+  position    String
+  division    String
+  senders     Senders?
+  validaters  Validaters?
+}
+
+model Senders {
+  id        Int         @id @default(autoincrement())
+  username  String
+  position  String
+  active    Boolean
+  UserId    Int         @unique
+  workflows Workflows[]
+  Orders    Orders[]
+  Users     Users       @relation(fields: [UserId], references: [id])
+}
+
+model Validaters {
+  id        Int         @id @default(autoincrement())
+  username  String
+  position  String
+  active    Boolean
+  UserId    Int         @unique
+  workflows Workflows[]
+  Users     Users       @relation(fields: [UserId], references: [id])
+}
+
+model Flows {
+  id       Int        @id @default(autoincrement())
+  name     String
+  active   Boolean?
+  Workflow Workflows?
+  Orders   Orders[]
+}
+
+model Workflows {
+  id             Int         @id @default(autoincrement())
+  FlowId         Int         @unique
+  ValidateUserId Int
+  OwnerUserId    Int
+  active         Boolean
+  Flows          Flows       @relation(fields: [FlowId], references: [id])
+  Validaters     Validaters? @relation(fields: [ValidateUserId], references: [id])
+  Senders        Senders?    @relation(fields: [OwnerUserId], references: [id])
+}
+
+model Tags {
+  id        Int        @id @default(autoincrement())
+  name      String
+  active    Boolean
+  createdAt DateTime   @default(now())
+  Products  Products[]
+}
+
+model Products {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String   @db.Text
+  imgUrl      String
+  qty         Int
+  price       Int
+  status      String   @db.Text
+  TagId       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Orders      Orders[]
+  Tags        Tags?    @relation(fields: [TagId], references: [id])
+}
+
+model Orders {
+  id          Int       @id @default(autoincrement())
+  ProductId   Int
+  OwnerId     Int
+  qty         Int
+  totalAmount Int
+  message     String?
+  FlowId      Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Products    Products? @relation(fields: [ProductId], references: [id])
+  Senders     Senders?  @relation(fields: [OwnerId], references: [id])
+  Flows       Flows?    @relation(fields: [FlowId], references: [id])
+}

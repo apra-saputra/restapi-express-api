@@ -1,13 +1,15 @@
-const ProductControl = require("../controller/productControl");
+import { Router } from "express";
 
-const route = require("express").Router();
+import ProductControl from "../controller/productControl.js";
+
+const route = Router();
 
 //Swagger get Products
 /**
  * @swagger
  * /products:
  *   get:
- *     summary: Mendapatkan produk yang tersedia    
+ *     summary: Mendapatkan produk yang tersedia
  *     tags: [products]
  *     responses:
  *       200:
@@ -45,4 +47,4 @@ route.get("/", ProductControl.getProducts);
  */
 route.get("/:id", ProductControl.getProductById);
 
-module.exports = route;
+export default route;

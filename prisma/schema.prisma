@@ -15,6 +15,7 @@ model Users {
   name       String
   username   String      @unique
   email      String      @unique
+  otp        String?
   active     Boolean?
   position   String
   createdAt  DateTime    @default(now())

@@ -1,4 +1,4 @@
-const response = require("../helpers/response");
+import response from "../helpers/response.js";
 
 const errorHandler = (error, req, res, next) => {
   console.log(error);
@@ -11,8 +11,20 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 404;
     status = "DATA NOT FOUND";
   }
+  if (name === "EMAIL_IS_REQUIRED") {
+    statusCode = 400;
+    status = "EMAIL IS REQUIRED";
+  }
+  if (name === "USERNAME_IS_REQUIRED") {
+    statusCode = 400;
+    status = "USERNAME IS REQUIRED";
+  }
+  if (name === "INVALID_LOGIN") {
+    statusCode = 401;
+    status = "INVALID LOGIN";
+  }
 
   response(res, statusCode, status);
 };
 
-module.exports = errorHandler;
+export default errorHandler;

@@ -1,10 +1,45 @@
-const route = require("express").Router();
-const productRoute = require("./productRouter");
+import { Router } from "express";
+import AuthControl from "../controller/authControl.js";
+import productRoute from "./productRouter.js";
+
+const route = Router();
 
 route.get("", (req, res) => {
   res.send("service ready...🚀");
 });
 
+//Swagger post Login
+/**
+ * @swagger
+ * /request-otp:
+ *   post:
+ *     summary: login user
+ *     tags:
+ *       - users
+ *     description: Untuk masuk kedalam sistem user di wajibkan untuk login untuk membuat kode otp
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: email
+ *         description: input email user
+ *         schema:
+ *          type: object
+ *          required:
+ *            - email
+ *          properties:
+ *            email:
+ *              type: string
+ *     responses:
+ *       200:
+ *         description: SUCCESS GET PRODUCT
+ *       404:
+ *         description: DATA NOT FOUND
+ *       500:
+ *         description: INTERNAL SERVER ERROR
+ */
+route.post("/request-otp", AuthControl.requestOTP);
+
 route.use("/products", productRoute);
 
-module.exports = route;
+export default route;

@@ -1,9 +1,9 @@
-const { PrismaClient } = require("@prisma/client");
-const response = require("../helpers/response");
+import { PrismaClient } from "@prisma/client";
+import response from "../helpers/response.js";
 
 const prisma = new PrismaClient();
 
-module.exports = class ProductControl {
+export default class ProductControl {
   static async getProducts(req, res, next) {
     try {
       const data = await prisma.products.findMany();
@@ -36,10 +36,10 @@ module.exports = class ProductControl {
         where: { id: req.params.id },
         data: {},
       });
-      
+
       response(res, 200, "SUCCESS UPDATE PRODUCT", data);
     } catch (error) {
       next(error);
     }
   }
-};
+}

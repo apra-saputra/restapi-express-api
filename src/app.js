@@ -1,10 +1,13 @@
-const express = require("express");
-const cors = require("cors");
-const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
+import * as dotenv from "dotenv";
+dotenv.config();
 
-const route = require("./routes");
-const errorHandler = require("./middleware/errorHandler");
+import express from "express";
+import cors from "cors";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+
+import route from "./routes/index.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -22,7 +25,7 @@ const options = {
   apis: ["./src/routes/index.js", "./src/routes/*.js"],
 };
 
-const specs = swaggerJsdoc(options);
+const specs = swaggerJSDoc(options);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
@@ -35,4 +38,8 @@ app.use(route);
 // apply error handler as middleware
 app.use(errorHandler);
 
-module.exports = app;
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  console.log("service listen on post :", port);
+});

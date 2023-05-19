@@ -32,7 +32,7 @@ route.get("", (req, res) => {
  *              type: string
  *     responses:
  *       200:
- *         description: SUCCESS GET PRODUCT
+ *         description: SUCCESS OTP SENT
  *       404:
  *         description: DATA NOT FOUND
  *       500:

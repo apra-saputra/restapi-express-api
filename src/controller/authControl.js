@@ -17,8 +17,6 @@ export default class AuthControl {
 
       const otp = generateOtp();
 
-      console.log({ otp });
-
       await prisma.users.update({
         where: { id: data.id },
         data: { otp: toString(otp) },
@@ -26,13 +24,13 @@ export default class AuthControl {
 
       // otp should send to email or personal whatsapp
 
-      response(res, 200, "SUCCESS LOGIN/ OTP SENT", { email: data.email });
+      response(res, 200, "SUCCESS OTP SENT", { email: data.email });
     } catch (error) {
       next(error);
     }
   }
 
-  static async sendOtp(req, res, next) {
+  static async confirmOtp(req, res, next) {
     try {
       const { email, OTP } = req.body;
 
@@ -42,15 +40,32 @@ export default class AuthControl {
 
       if (data.otp !== OTP) throw { name: "INVALID_LOGIN" };
 
+      if (validateExpiredOtp(data)) throw { name: "INVALID_LOGIN" };
+
       const token = signToken({ id: data.id, email: data.email });
-      response(res, 200, "SUCCESS LOGIN", token);
+      response(res, 200, "SUCCESS OTP CONFIRM", token);
     } catch (error) {
       next(error);
     }
   }
 }
 
-// function generateOtp() {
-//   const otp = Math.round(Math.random() * 1000000);
-//   return otp;
-// }
+function generateOtp() {
+  const otp = Math.round(Math.random() * 1000000);
+  return otp;
+}
+
+function validateExpiredOtp(data) {
+  const nowTime = new Date();
+  const dataTime = new Date(data.updatedAt);
+  const setTime = 5 * 60; // in minutes
+
+  const timeDifferenceInSeconds = Math.floor(
+    (nowTime.getTime() - dataTime.getTime()) / 1000 // in second
+  );
+
+  if (timeDifferenceInSeconds < setTime) {
+    return true;
+  }
+  return false;
+}

@@ -24,7 +24,7 @@ const errorHandler = (error, req, res, next) => {
     status = "INVALID LOGIN";
   }
 
-  response(res, statusCode, status);
+  response(res, statusCode, status, { message: status });
 };
 
 export default errorHandler;

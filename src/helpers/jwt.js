@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 const secretKey = process.env.JSONWEBTOKEN_KEY;
 
-export const signToken = (payload = { id, username }) => {
+export const signToken = ({ id, username }) => {
   return jwt.sign({ id, username }, secretKey);
 };
 

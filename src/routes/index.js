@@ -8,37 +8,44 @@ route.get("", (req, res) => {
   res.send("service ready...🚀");
 });
 
-//Swagger post Login
+//Swagger post request-otp
 /**
  * @swagger
  * /request-otp:
  *   post:
- *     summary: login user
+ *     summary: Login pengguna dan menghasilkan kode OTP
  *     tags:
  *       - users
- *     description: Untuk masuk kedalam sistem user di wajibkan untuk login untuk membuat kode otp
- *     consumes:
- *       - application/json
- *     parameters:
- *       - in: body
- *         name: email
- *         description: input email user
- *         schema:
- *          type: object
- *          required:
- *            - email
- *          properties:
- *            email:
- *              type: string
+ *     description: Gunakan API ini untuk masuk ke sistem pengguna dan menghasilkan kode OTP
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Nama pengguna
+ *             required:
+ *               - username
  *     responses:
  *       200:
- *         description: SUCCESS OTP SENT
+ *         description: OTP berhasil dikirim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 email:
+ *                   type: string
+ *                   description: Email pengguna
  *       404:
- *         description: DATA NOT FOUND
+ *         description: Data tidak ditemukan
  *       500:
- *         description: INTERNAL SERVER ERROR
+ *         description: Kesalahan server internal
  */
 route.post("/request-otp", AuthControl.requestOTP);
+route.post("/confirm-otp", AuthControl.confirmOtp);
 
 route.use("/products", productRoute);
 

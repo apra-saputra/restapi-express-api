@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 export default class AuthControl {
   static async requestOTP(req, res, next) {
     try {
+      // console.log({req})
       const { username } = req.body;
 
       if (!username) throw { name: "USERNAME_IS_REQUIRED" };
@@ -15,14 +16,16 @@ export default class AuthControl {
 
       if (!data.id) throw { name: "NOT_FOUND" };
 
-      const otp = generateOtp();
+      const otp = generateOtp().toString();
+
+      console.log(otp);
 
       await prisma.users.update({
         where: { id: data.id },
-        data: { otp: toString(otp) },
+        data: { otp },
       });
 
-      // otp should send to email or personal whatsapp
+      // otp should send to email or personal message
 
       response(res, 200, "SUCCESS OTP SENT", { email: data.email });
     } catch (error) {
@@ -38,12 +41,20 @@ export default class AuthControl {
 
       const data = await prisma.users.findUnique({ where: { email } });
 
-      if (data.otp !== OTP) throw { name: "INVALID_LOGIN" };
+      if (data.otp !== OTP.toString()) throw { name: "INVALID_LOGIN" };
 
-      if (validateExpiredOtp(data)) throw { name: "INVALID_LOGIN" };
+      if (validateExpiredOtp(data))
+        throw { name: "INVALID_LOGIN", message: "OTP IS EXPIRED" };
 
       const token = signToken({ id: data.id, email: data.email });
-      response(res, 200, "SUCCESS OTP CONFIRM", token);
+      response(res, 200, "SUCCESS OTP CONFIRM", { accessToken: token });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async logout(req, res, next) {
+    try {
     } catch (error) {
       next(error);
     }
@@ -63,9 +74,13 @@ function validateExpiredOtp(data) {
   const timeDifferenceInSeconds = Math.floor(
     (nowTime.getTime() - dataTime.getTime()) / 1000 // in second
   );
-
+  console.log(
+    timeDifferenceInSeconds,
+    setTime,
+    timeDifferenceInSeconds < setTime
+  );
   if (timeDifferenceInSeconds < setTime) {
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }

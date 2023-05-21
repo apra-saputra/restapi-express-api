@@ -1,6 +1,7 @@
 import { Router } from "express";
 import AuthControl from "../controller/authControl.js";
 import productRoute from "./productRouter.js";
+import orderRoute from "./orderRouter.js";
 
 const route = Router();
 
@@ -48,5 +49,6 @@ route.post("/request-otp", AuthControl.requestOTP);
 route.post("/confirm-otp", AuthControl.confirmOtp);
 
 route.use("/products", productRoute);
+route.use("/orders", orderRoute);
 
 export default route;

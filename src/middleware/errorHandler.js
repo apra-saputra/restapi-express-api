@@ -23,6 +23,9 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 401;
     status = "INVALID LOGIN";
   }
+  if (name === "CUSTOM") {
+    status = error.message;
+  }
 
   response(res, statusCode, status, { message: status });
 };

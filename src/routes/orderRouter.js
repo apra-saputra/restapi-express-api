@@ -3,7 +3,7 @@ import OrderControl from "../controller/orderControl.js";
 
 const route = Router();
 
-route.get("/:userid", OrderControl.getOrders);
+route.get("/", OrderControl.getOrders);
 route.get("/:id", OrderControl.getOrdersById);
 route.post("/", OrderControl.createOrder);
 route.put("/:id", OrderControl.modifyOrder);

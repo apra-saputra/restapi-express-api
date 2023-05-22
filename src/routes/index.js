@@ -2,10 +2,11 @@ import { Router } from "express";
 import AuthControl from "../controller/authControl.js";
 import productRoute from "./productRouter.js";
 import orderRoute from "./orderRouter.js";
+import tagRoute from "./tagRouter.js";
 
 const route = Router();
 
-route.get("", (req, res) => {
+route.get("", (_, res) => {
   res.send("service ready...🚀");
 });
 
@@ -48,7 +49,9 @@ route.get("", (req, res) => {
 route.post("/request-otp", AuthControl.requestOTP);
 route.post("/confirm-otp", AuthControl.confirmOtp);
 
+// route from route
 route.use("/products", productRoute);
 route.use("/orders", orderRoute);
+route.use("/tags", tagRoute);
 
 export default route;

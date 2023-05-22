@@ -1,8 +1,8 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-const tagsSeeder = require("./seeder/tags");
-const flowsSeeder = require("./seeder/flows");
+import tagsSeeder from "./seeder/tags.js";
+import flowsSeeder from "./seeder/flows.js";
 
 async function sendersValidatersSeed() {
   const data = [

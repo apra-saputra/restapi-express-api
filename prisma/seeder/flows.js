@@ -1,4 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const data = [
@@ -24,7 +24,8 @@ const workflow = [
 ];
 
 async function flowSeeder() {
-  const flow = await prisma.flows.createMany({ data });
+  await prisma.flows.createMany({ data });
   await prisma.workflows.createMany({ data: workflow });
 }
-module.exports = flowSeeder;
+
+export default flowSeeder;

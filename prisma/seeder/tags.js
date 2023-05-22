@@ -1,4 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const tags = [
@@ -17,4 +17,5 @@ async function tagsSeeder() {
   await prisma.tags.createMany({ data: tags });
   await prisma.stocks.createMany({ data: stock });
 }
-module.exports = tagsSeeder;
+
+export default tagsSeeder;

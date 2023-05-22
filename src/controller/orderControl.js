@@ -6,14 +6,10 @@ const prisma = new PrismaClient();
 export default class OrderControl {
   static async getOrders(req, res, next) {
     try {
-      let { limit, skip } = req.query;
+      let { limit, skip, userid } = req.query;
 
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(limit) : 0;
-
-      const { userid } = req.params;
-
-      console.log(isNaN(Number(userid)), userid, "userid");
 
       if (!userid || isNaN(Number(userid)))
         throw { name: "CUSTOM", message: "User is Needed" };
@@ -38,7 +34,20 @@ export default class OrderControl {
     }
   }
 
-  static async getOrdersById(req, res, next) {}
+  static async getOrdersById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const data = await prisma.orders.findUnique({
+        where: { id: Number(id) },
+        include: { Products: { include: { Tags: true } }, Senders: true },
+      });
+
+      response(res, 200, "SUCCESS GET ORDER", { data });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   static async createOrder(req, res, next) {}
 

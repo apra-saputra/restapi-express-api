@@ -68,18 +68,23 @@ model Tags {
 }
 
 model Products {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
-  description String   @db.Text
-  imgUrl      String
+  description String      @db.Text
+  imgUrl      String?
   qty         Int
   price       Int
-  statusOrder String   @db.Text
+  statusOrder StatusOrder?
   TagId       Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   Orders      Orders[]
-  Tags        Tags?    @relation(fields: [TagId], references: [id])
+  Tags        Tags?       @relation(fields: [TagId], references: [id])
+}
+
+enum StatusOrder {
+  ORDERING
+  SATTLE
 }
 
 model Orders {

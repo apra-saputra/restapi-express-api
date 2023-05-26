@@ -5,7 +5,7 @@ const errorHandler = (error, req, res, next) => {
   let statusCode = 500;
   let status = "INTERNAL SERVER ERROR";
 
-  const { name } = error;
+  const { name, code } = error;
 
   if (name === "NOT_FOUND") {
     statusCode = 404;
@@ -24,6 +24,7 @@ const errorHandler = (error, req, res, next) => {
     status = "INVALID LOGIN";
   }
   if (name === "CUSTOM") {
+    statusCode = code ? code : statusCode;
     status = error.message;
   }
 

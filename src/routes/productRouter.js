@@ -22,14 +22,24 @@ const route = Router();
 
 route.get("/", ProductControl.getProducts);
 
+//Swagger get Download Template
+/**
+ * @swagger
+ * /products/download-template:
+ *  get:
+ *    summary: Mengunduh file template
+ *    tags: [products]
+ *
+ */
+route.get("/download-template", ProductControl.downloadTemplateProduct);
+
 //Swagger get Product
 /**
  * @swagger
  * /products/{id}:
  *   get:
  *     summary: Mendapatkan produk berdasarkan ID
- *     tags:
- *       - product
+ *     tags: [products]
  *     parameters:
  *       - in: path
  *         name: id
@@ -46,5 +56,38 @@ route.get("/", ProductControl.getProducts);
  *         description: INTERNAL SERVER ERROR
  */
 route.get("/:id", ProductControl.getProductById);
+
+//Swagger post Product
+/**
+ * @swagger
+ * /products:
+ *    post:
+ *      summary: membuat product baru dari file yang dikirimkan
+ *      tags: [products]
+ *
+ */
+route.post("/", ProductControl.createProduct);
+
+//Swagger put Image Product
+/**
+ * @swagger
+ * /products/{id}:
+ *     put:
+ *      summary: mengupdate gambar dengan mengirimkan file ke api
+ *      tags: [products]
+ *
+ */
+route.put("/:id", ProductControl.updateImageProduct);
+
+//Swagger put Image Product
+/**
+ * @swagger
+ * /products/{id}:
+ *     delete:
+ *      summary: menghapus product secara hard delete
+ *      tags: [products]
+ *
+ */
+route.delete("/:id", ProductControl.hardDeleteProduct);
 
 export default route;

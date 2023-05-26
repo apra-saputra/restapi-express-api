@@ -6,24 +6,29 @@ import flowsSeeder from "./seeder/flows.js";
 
 async function sendersValidatersSeed() {
   const data = [
-    { username: "mgr_test", position: "manager", active: true, UserId: 1 },
-    { username: "spv_test", position: "supervisor", active: true, UserId: 2 },
+    { position: "manager", active: true, UserId: 1 },
+    { position: "supervisor", active: true, UserId: 2 },
   ];
 
   const sender = [
     {
-      username: "operator_test",
       position: "purchesing",
       active: true,
-      UserId: 1,
+      UserId: 3,
+    },
+    {
+      position: "supervisor",
+      active: true,
+      UserId: 2,
     },
   ];
+
   await prisma.validaters.createMany({ data });
-  await prisma.senders.createMany({ data: sender });
+  await prisma.owners.createMany({ data: sender });
 }
 
 async function userSeed() {
-  const alice = await prisma.Users.upsert({
+  await prisma.Users.upsert({
     where: { email: "alice@test.com" },
     update: {},
     create: {
@@ -31,11 +36,10 @@ async function userSeed() {
       username: "mgr_test",
       email: "alice@test.com",
       active: true,
-      position: "manager",
     },
   });
 
-  const udin = await prisma.Users.upsert({
+  await prisma.Users.upsert({
     where: { email: "udin@test.com" },
     update: {},
     create: {
@@ -43,11 +47,10 @@ async function userSeed() {
       username: "spv_test",
       email: "udin@test.com",
       active: true,
-      position: "supervisor",
     },
   });
 
-  const john = await prisma.Users.upsert({
+  await prisma.Users.upsert({
     where: { email: "john@test.com" },
     update: {},
     create: {
@@ -55,7 +58,6 @@ async function userSeed() {
       username: "operator_test",
       email: "john@test.com",
       active: true,
-      position: "purchesing",
     },
   });
 }

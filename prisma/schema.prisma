@@ -11,19 +11,17 @@ datasource db {
 }
 
 model Users {
-  id         Int          @id @default(autoincrement())
-  name       String
-  username   String       @unique
-  email      String       @unique
-  otp        String?
-  active     Boolean
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  owner      Owners[]
-  validaters Validaters[]
+  id        Int        @id @default(autoincrement())
+  name      String
+  username  String     @unique
+  email     String     @unique
+  otp       String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Positons  Positions?
 }
 
-model Owners {
+model Positions {
   id        Int         @id @default(autoincrement())
   position  String
   active    Boolean
@@ -35,68 +33,50 @@ model Owners {
   Users     Users       @relation(fields: [UserId], references: [id])
 }
 
-model Validaters {
-  id        Int         @id @default(autoincrement())
-  position  String
-  active    Boolean
-  UserId    Int         @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  workflows Workflows[]
-  Users     Users       @relation(fields: [UserId], references: [id])
-}
-
 model Workflows {
-  id             Int         @id @default(autoincrement())
-  ValidateUserId Int
-  OwnerUserId    Int
-  message        String
-  active         Boolean
-  createdAt      DateTime    @default(now())
-  Validaters     Validaters? @relation(fields: [ValidateUserId], references: [id])
-  Owner          Owners?     @relation(fields: [OwnerUserId], references: [id])
-  Orders         Orders[]
+  id         Int        @id @default(autoincrement())
+  action     String
+  message    String
+  ApprovalId Int
+  active     Boolean
+  createdAt  DateTime   @default(now())
+  Positions  Positions? @relation(fields: [ApprovalId], references: [id])
+  Orders     Orders[]
 }
 
 model Tags {
   id        Int        @id @default(autoincrement())
   name      String
-  active    Boolean
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   Products  Products[]
 }
 
 model Products {
-  id          Int         @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
-  description String      @db.Text
+  description String   @db.Text
   imgUrl      String?
   qty         Int
   price       Int
-  statusOrder StatusOrder?
+  statusOrder String?
   TagId       Int
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   Orders      Orders[]
-  Tags        Tags?       @relation(fields: [TagId], references: [id])
-}
-
-enum StatusOrder {
-  ORDERING
-  SATTLE
+  Tags        Tags?    @relation(fields: [TagId], references: [id])
 }
 
 model Orders {
   id          Int        @id @default(autoincrement())
   ProductId   Int
-  OwnerId     Int
+  AuthorId    Int
   qty         Int
   totalAmount Int
   WorkflowId  Int
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   Products    Products?  @relation(fields: [ProductId], references: [id])
-  Owners      Owners?    @relation(fields: [OwnerId], references: [id])
+  Author      Positions? @relation(fields: [AuthorId], references: [id])
   Workflows   Workflows? @relation(fields: [WorkflowId], references: [id])
 }

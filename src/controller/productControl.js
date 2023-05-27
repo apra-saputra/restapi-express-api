@@ -6,13 +6,24 @@ import * as XLSX from "xlsx";
 const prisma = new PrismaClient();
 
 export default class ProductControl {
-  static async getProducts(_, res, next) {
+  static async getProducts(req, res, next) {
     try {
-      const data = await prisma.products.findMany();
+      let { limit, skip } = req.query;
 
-      if (!data.length) throw { name: "NOT_FOUND" };
+      limit = limit ? Number(limit) : 10;
+      skip = skip ? Number(skip) : 0;
 
-      response(res, 200, "SUCCESS GET PRODUCTS", data);
+      const [products, totalProducts] = await prisma.$transaction([
+        prisma.products.findMany({ skip, take: limit }),
+        prisma.products.count(),
+      ]);
+
+      response(res, 200, "SUCCESS GET PRODUCTS", {
+        count: totalProducts,
+        data: products,
+        limit,
+        skip,
+      });
     } catch (error) {
       next(error);
     }
@@ -70,7 +81,9 @@ export default class ProductControl {
         }),
       });
 
-      response(res, 200, "SUCCESS CREATE PRODUCT");
+      response(res, 200, "SUCCESS CREATE PRODUCT", {
+        message: "Success Create Product",
+      });
     } catch (error) {
       next(error);
     }

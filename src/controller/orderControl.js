@@ -10,7 +10,7 @@ export default class OrderControl {
       let { limit, skip, userid } = req.query;
 
       limit = limit ? Number(limit) : 10;
-      skip = skip ? Number(limit) : 0;
+      skip = skip ? Number(skip) : 0;
 
       if (!userid || isNaN(Number(userid)))
         throw { name: "CUSTOM", message: "User is Needed" };
@@ -19,17 +19,17 @@ export default class OrderControl {
         OwnerId: Number(userid),
       };
 
-      const order = await prisma.orders.findMany({
+      const [orders, totalOrders] = await prisma.$transaction([
+        prisma.orders.findMany({ skip, take: limit, where: option }),
+        prisma.orders.count({ where: option }),
+      ]);
+
+      response(res, 200, "SUCCESS GET ORDERS", {
+        data: orders,
+        count: totalOrders,
+        limit,
         skip,
-        take: limit,
-        where: option,
       });
-
-      const count = await prisma.orders.count({
-        where: option,
-      });
-
-      response(res, 200, "SUCCESS GET ORDERS", { data: order, count });
     } catch (error) {
       next(error);
     }

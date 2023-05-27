@@ -4,27 +4,14 @@ const prisma = new PrismaClient();
 import tagsSeeder from "./seeder/tags.js";
 import flowsSeeder from "./seeder/flows.js";
 
-async function sendersValidatersSeed() {
+async function positionSeed() {
   const data = [
     { position: "manager", active: true, UserId: 1 },
     { position: "supervisor", active: true, UserId: 2 },
+    { position: "purchasing", active: true, UserId: 3 },
   ];
 
-  const sender = [
-    {
-      position: "purchesing",
-      active: true,
-      UserId: 3,
-    },
-    {
-      position: "supervisor",
-      active: true,
-      UserId: 2,
-    },
-  ];
-
-  await prisma.validaters.createMany({ data });
-  await prisma.owners.createMany({ data: sender });
+  await prisma.Positions.createMany({ data });
 }
 
 async function userSeed() {
@@ -35,7 +22,6 @@ async function userSeed() {
       name: "alice",
       username: "mgr_test",
       email: "alice@test.com",
-      active: true,
     },
   });
 
@@ -46,7 +32,6 @@ async function userSeed() {
       name: "udin",
       username: "spv_test",
       email: "udin@test.com",
-      active: true,
     },
   });
 
@@ -57,7 +42,6 @@ async function userSeed() {
       name: "john",
       username: "operator_test",
       email: "john@test.com",
-      active: true,
     },
   });
 }
@@ -66,7 +50,7 @@ async function main() {
   console.log(`Start seeding ...`);
   await tagsSeeder();
   await userSeed();
-  await sendersValidatersSeed();
+  await positionSeed();
   await flowsSeeder();
 
   console.log("Seeding complete...");

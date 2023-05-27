@@ -3,6 +3,7 @@ import AuthControl from "../controller/authControl.js";
 import productRoute from "./productRouter.js";
 import orderRoute from "./orderRouter.js";
 import tagRoute from "./tagRouter.js";
+import workflowRoute from "./workflowRouter.js";
 
 const route = Router();
 
@@ -53,5 +54,6 @@ route.post("/confirm-otp", AuthControl.confirmOtp);
 route.use("/products", productRoute);
 route.use("/orders", orderRoute);
 route.use("/tags", tagRoute);
+route.use("/workflows", workflowRoute);
 
 export default route;

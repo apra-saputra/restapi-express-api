@@ -49,10 +49,11 @@ route.get("", (_, res) => {
  */
 route.post("/request-otp", AuthControl.requestOTP);
 route.post("/confirm-otp", AuthControl.confirmOtp);
+route.post("/logout", AuthControl.logout);
 
 // route from route
-route.use("/products", productRoute);
 route.use("/orders", orderRoute);
+route.use("/products", productRoute);
 route.use("/tags", tagRoute);
 route.use("/workflows", workflowRoute);
 

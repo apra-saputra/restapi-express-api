@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import path from "path";
+import * as XLSX from "xlsx";
 import response from "../helpers/response.js";
 
 const prisma = new PrismaClient();
@@ -16,7 +17,7 @@ export default class OrderControl {
         throw { name: "CUSTOM", message: "User is Needed" };
 
       let option = {
-        OwnerId: Number(userid),
+        AuthorId: Number(userid),
       };
 
       const [orders, totalOrders] = await prisma.$transaction([
@@ -41,8 +42,10 @@ export default class OrderControl {
 
       const data = await prisma.orders.findUnique({
         where: { id: Number(id) },
-        include: { Products: { include: { Tags: true } }, Senders: true },
+        include: { Products: true, Author: true },
       });
+
+      if (!data) throw { name: "NOT_FOUND" };
 
       response(res, 200, "SUCCESS GET ORDER", { data });
     } catch (error) {
@@ -52,28 +55,60 @@ export default class OrderControl {
 
   static async createOrder(req, res, next) {
     try {
-      const { productId, quantity, totalAmount, userId, flowId } = req.body;
+      const { workflowId, userid } = req.body;
 
-      const product = await prisma.products.findUnique({
-        where: { id: Number(productId) },
-      });
+      /**
+       * creating product
+       */
+      if (!req.files || !req.files.docs)
+        throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
 
-      if (!product) throw { name: "NOT_FOUND" };
+      const { docs } = req.files;
+      const extention = path.extname(docs.name);
 
-      const payload = {
-        ProductId: productId,
-        OwnerId: userId,
-        qty: quantity,
-        totalAmount: totalAmount,
-        WorkflowId: flowId,
-      };
+      // validation extention
+      const validationExt = [".xlsx", ".xls"];
 
-      const data = await prisma.orders.create({ data: payload });
+      if (!validationExt.includes(extention.toLowerCase()))
+        throw {
+          name: "CUSTOM",
+          code: 422,
+          message: "format must be xlsx, xls",
+        };
 
-      await prisma.products.update({
-        where: { id: productId },
-        data: { status: "ORDERING" },
-      });
+      const workbook = XLSX.read(docs.data, { type: "buffer" });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }).splice(1);
+
+      if (!data.length) throw { name: "NOT_FOUND" };
+
+      const { invalidIndexes, isValid } = await validateTagIds(
+        data.map((item) => item[1])
+      );
+
+      if (!isValid)
+        throw {
+          name: "CUSTOM",
+          code: 400,
+          message: `INVALID TAGID NUMBER ${invalidIndexes}`,
+        };
+
+      // await prisma.orders.createMany({ data: { AuthorId: userid,  } });
+
+      // const products = await prisma.products.createMany({
+      //   data: data.map((rows) => {
+      //     const obj = {
+      //       TagId: rows[1],
+      //       name: rows[2],
+      //       qty: rows[3],
+      //       price: rows[4],
+      //       description: rows[5],
+      //     };
+      //     return obj;
+      //   }),
+      // });
+
+      // creating product end
 
       response(res, 200, "SUCCESS CREATE ORDER");
     } catch (error) {
@@ -153,4 +188,32 @@ export default class OrderControl {
   static async modifyOrder(req, res, next) {}
 
   static async cancelOrder(req, res, next) {}
+}
+
+async function validateTagIds(tagIds = []) {
+  try {
+    const existingTags = await prisma.tags.findMany({
+      where: {
+        id: {
+          in: tagIds,
+        },
+      },
+    });
+
+    const existingTagIds = existingTags.map((tag) => tag.id);
+    const invalidTagIndexes = tagIds.reduce((invalidIndexes, tagId, index) => {
+      if (!existingTagIds.includes(tagId)) {
+        invalidIndexes.push(index);
+      }
+      return invalidIndexes;
+    }, []);
+
+    return {
+      isValid: invalidTagIndexes.length === 0,
+      invalidIndexes: invalidTagIndexes ? Number(invalidTagIndexes) + 1 : 0,
+    };
+  } catch (error) {
+    console.error(error);
+    throw new Error("Gagal memvalidasi tag berdasarkan ID.");
+  }
 }

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { signToken } from "../helpers/jwt.js";
+import { generateOtp, validateExpiredOtp } from "../helpers/otp.js";
 import response from "../helpers/response.js";
 
 const prisma = new PrismaClient();
@@ -55,32 +56,14 @@ export default class AuthControl {
 
   static async logout(req, res, next) {
     try {
+      await prisma.users.update({
+        where: { id: Number(req.user.id) },
+        data: { otp: null },
+      });
+
+      response(res, 200, "SUCCESS LOGOUT");
     } catch (error) {
       next(error);
     }
   }
-}
-
-function generateOtp() {
-  const otp = Math.round(Math.random() * 1000000);
-  return otp;
-}
-
-function validateExpiredOtp(data) {
-  const nowTime = new Date();
-  const dataTime = new Date(data.updatedAt);
-  const setTime = 5 * 60; // in minutes
-
-  const timeDifferenceInSeconds = Math.floor(
-    (nowTime.getTime() - dataTime.getTime()) / 1000 // in second
-  );
-  console.log(
-    timeDifferenceInSeconds,
-    setTime,
-    timeDifferenceInSeconds < setTime
-  );
-  if (timeDifferenceInSeconds < setTime) {
-    return false;
-  }
-  return true;
 }

@@ -10,7 +10,7 @@ const route = Router();
  * /products:
  *   get:
  *     summary: Mendapatkan produk yang tersedia
- *     tags: [products]
+ *     tags: [Products]
  *     responses:
  *       200:
  *         description: SUCCESS GET PRODUCTS
@@ -28,7 +28,7 @@ route.get("/", ProductControl.getProducts);
  * /products/download-template:
  *  get:
  *    summary: Mengunduh file template
- *    tags: [products]
+ *    tags: [Products]
  *
  */
 route.get("/download-template", ProductControl.downloadTemplateProduct);
@@ -39,7 +39,7 @@ route.get("/download-template", ProductControl.downloadTemplateProduct);
  * /products/{id}:
  *   get:
  *     summary: Mendapatkan produk berdasarkan ID
- *     tags: [products]
+ *     tags: [Products]
  *     parameters:
  *       - in: path
  *         name: id
@@ -63,7 +63,7 @@ route.get("/:id", ProductControl.getProductById);
  * /products:
  *    post:
  *      summary: membuat product baru dari file yang dikirimkan
- *      tags: [products]
+ *      tags: [Products]
  *
  */
 route.post("/", ProductControl.createProduct);
@@ -74,7 +74,7 @@ route.post("/", ProductControl.createProduct);
  * /products/{id}:
  *     put:
  *      summary: mengupdate gambar dengan mengirimkan file ke api
- *      tags: [products]
+ *      tags: [Products]
  *
  */
 route.put("/:id", ProductControl.updateImageProduct);
@@ -85,7 +85,7 @@ route.put("/:id", ProductControl.updateImageProduct);
  * /products/{id}:
  *     delete:
  *      summary: menghapus product secara hard delete
- *      tags: [products]
+ *      tags: [Products]
  *
  */
 route.delete("/:id", ProductControl.hardDeleteProduct);

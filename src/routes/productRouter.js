@@ -14,8 +14,6 @@ const route = Router();
  *     responses:
  *       200:
  *         description: SUCCESS GET PRODUCTS
- *       404:
- *         description: DATA NOT FOUND
  *       500:
  *         description: INTERNAL SERVER ERROR
  */

@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export default class WorkflowControl {
   static async getWorkflows(req, res, next) {
     try {
-      const { userId } = req.query;
+      const userId = req.user.id;
 
       const data = await prisma.workflows.findMany({
         where: { ApproverId: Number(userId) },

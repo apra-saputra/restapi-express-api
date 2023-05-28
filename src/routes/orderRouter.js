@@ -6,10 +6,15 @@ const route = Router();
 /**
  * @swagger
  * /orders:
- *  get:
- *    summary: Mendapatkan semua file order
- *    tags: [Orders]
- *
+ *     get:
+ *          summary: Mendapatkan semua file order
+ *          tags: [Orders]
+ *          parameter:
+ *     responses:
+ *       200:
+ *          description: SUCCESS GET ORDERS, TYPE {typeService}
+ *       500:
+ *         description: INTERNAL SERVER ERROR
  */
 route.get("/", OrderControl.getOrders);
 
@@ -22,14 +27,14 @@ route.get("/", OrderControl.getOrders);
  */
 route.post("/", OrderControl.createOrder);
 
-/**
- * @swagger
- * /need-action:
- *   get:
- *    summary: Untuk mendapatkan Order yang akan di approve
- *    tags: [Orders]
- */
-route.get("/need-action", OrderControl.getNeedAction);
+// /**
+//  * @swagger
+//  * /need-actions:
+//  *   get:
+//  *    summary: Untuk mendapatkan Order yang akan di approve
+//  *    tags: [Orders]
+//  */
+// route.get("/need-actions", OrderControl.getNeedAction);
 
 /**
  * @swagger

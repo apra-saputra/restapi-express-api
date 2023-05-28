@@ -8,16 +8,16 @@ const prisma = new PrismaClient();
 export default class OrderControl {
   static async getOrders(req, res, next) {
     try {
-      let { limit, skip, userid } = req.query;
+      let { limit, skip, userId } = req.query;
 
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(skip) : 0;
 
-      if (!userid || isNaN(Number(userid)))
+      if (!userId || isNaN(Number(userId)))
         throw { name: "CUSTOM", message: "User is Needed" };
 
       let option = {
-        AuthorId: Number(userid),
+        AuthorId: Number(userId),
       };
 
       const [orders, totalOrders] = await prisma.$transaction([
@@ -53,13 +53,23 @@ export default class OrderControl {
     }
   }
 
+  static async getNeedApprove(req, res, next) {
+    try {
+      const order = await prisma.productOrders.findMany({
+        where: { Orders: { Stages: { PositionId: Number(req.params.id) } } },
+        include: { Orders: { include: { Stages: true } } },
+      });
+
+      response(res, 200, "SUCCESS GET ORDER NEED APPROVE", { data: order });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async createOrder(req, res, next) {
     try {
-      const { workflowId, userid } = req.body;
+      const { workflowId, userId } = req.body;
 
-      /**
-       * creating product
-       */
       if (!req.files || !req.files.docs)
         throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
 
@@ -93,101 +103,86 @@ export default class OrderControl {
           message: `INVALID TAGID NUMBER ${invalidIndexes}`,
         };
 
-      // await prisma.orders.createMany({ data: { AuthorId: userid,  } });
+      const workflow = await prisma.workflows.findUnique({
+        where: { id: Number(workflowId) },
+        include: { Positions: { include: { Users: true } }, Stages: true },
+      });
 
-      // const products = await prisma.products.createMany({
-      //   data: data.map((rows) => {
-      //     const obj = {
-      //       TagId: rows[1],
-      //       name: rows[2],
-      //       qty: rows[3],
-      //       price: rows[4],
-      //       description: rows[5],
-      //     };
-      //     return obj;
-      //   }),
-      // });
+      // validation workflow
 
-      // creating product end
+      if (!workflow || workflow.Positions.id !== Number(userId))
+        throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
 
-      response(res, 200, "SUCCESS CREATE ORDER");
+      // create product
+
+      const payload = data.map((rows) => {
+        const obj = {
+          TagId: rows[1],
+          name: rows[2],
+          qty: rows[3],
+          price: rows[4],
+          description: rows[5],
+          statusOrder: workflow.Stages.state,
+        };
+        return obj;
+      });
+
+      const result = await transactionCreation(
+        payload,
+        Number(userId),
+        Number(workflow.id)
+      );
+
+      console.log(result);
+
+      response(res, 201, "SUCCESS CREATE ORDER");
     } catch (error) {
+      await prisma.$disconnect();
       next(error);
     }
   }
 
-  // static async createOrder(req, res, next) {
-  //   try {
-  //     const { userid, actionid } = req.query;
-  //     const { ProductId, amount } = req.body;
-
-  //     const workflowValid = await prisma.workflows.findUnique({
-  //       where: { id: Number(actionid) },
-  //       include: {
-  //         Senders: { include: { Users: true } },
-  //         Validaters: { include: { Users: true } },
-  //         Flows: true,
-  //       },
-  //     });
-
-  //     if (workflowValid.OwnerUserId !== Number(userid))
-  //       throw { name: "CUSTOM", code: 401, message: "UNAUTHORIZATION" };
-
-  //     if (!req.files)
-  //       throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
-
-  //     const { file } = req.files;
-  //     const { name: imgName, size: imgSize } = file;
-  //     const fileType = path.extname(imgName);
-  //     const fileName = file.md5 + fileType;
-  //     const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
-
-  //     // set validation
-  //     const fileTypeValidation = [".jpg", ".jpeg", ".png"];
-  //     const sizeValidation = 3;
-
-  //     // validation for image type
-  //     if (!fileTypeValidation.includes(fileType.toLowerCase()))
-  //       throw {
-  //         name: "CUSTOM",
-  //         code: 422,
-  //         message: "format must be jpg, jpeg, png",
-  //       };
-
-  //     if (imgSize > sizeValidation * 1024 * 1024)
-  //       throw {
-  //         name: "CUSTOM",
-  //         code: 422,
-  //         message: `size must be less than ${sizeValidation}MB`,
-  //       };
-
-  //     file.mv(`./public/images/${fileName}`, async (err) => {
-  //       if (err) throw err;
-
-  //       const orders = await prisma.orders.create({
-  //         data: {
-  //           ProductId: product.id,
-  //           OwnerId: Number(userid),
-  //           qty: Number(qty),
-  //           message: workflowValid.Flows.name,
-  //           FlowId: 1,
-  //           totalAmount: Number(amount),
-  //           locked: true,
-  //           FlowId: Number(actionid),
-  //         },
-  //       });
-
-  //       // console.log(result);
-  //       res.send("OK");
-  //     });
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // }
-
   static async modifyOrder(req, res, next) {}
 
   static async cancelOrder(req, res, next) {}
+}
+
+async function transactionCreation(
+  payload = [{}],
+  userid = "" || 0,
+  workflowId = "" || 0
+) {
+  return await prisma.$transaction(async (prisma) => {
+    let products = [];
+
+    payload.forEach(async (item) => {
+      const createdProduct = await prisma.products.create({
+        data: item,
+      });
+      products.push(createdProduct);
+    });
+
+    const orders = await prisma.orders.create({
+      data: {
+        AuthorId: Number(userid),
+        qty: getTotal(payload, "qty"),
+        totalAmount: getTotal(payload, "price") * getTotal(payload, "qty"),
+        StageId: Number(workflowId),
+      },
+    });
+
+    console.log({ products });
+
+    const dataProductOrder = products.map((product) => {
+      return { ProductId: product.id, OrderId: orders.id };
+    });
+
+    await prisma.productOrders.createMany({
+      data: dataProductOrder,
+    });
+
+    return dataProductOrder;
+  });
 }
 
 async function validateTagIds(tagIds = []) {
@@ -216,4 +211,14 @@ async function validateTagIds(tagIds = []) {
     console.error(error);
     throw new Error("Gagal memvalidasi tag berdasarkan ID.");
   }
+}
+
+function getTotal(array = [], typeOfTotalKey = "") {
+  let result = 0;
+
+  array.forEach((item) => {
+    result += Number(item[typeOfTotalKey]);
+  });
+
+  return result;
 }

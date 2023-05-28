@@ -13,8 +13,9 @@ const route = Router();
  *
  */
 route.get("/", OrderControl.getOrders);
-route.get("/:id", OrderControl.getOrdersById);
 route.post("/", OrderControl.createOrder);
+route.get("/need-approve/:id", OrderControl.getNeedApprove);
+route.get("/:id", OrderControl.getOrdersById);
 route.put("/:id", OrderControl.modifyOrder);
 route.delete("/:id", OrderControl.cancelOrder);
 

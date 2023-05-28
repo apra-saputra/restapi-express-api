@@ -38,11 +38,21 @@ model Workflows {
   id         Int        @id @default(autoincrement())
   action     String
   message    String
-  ApprovalId Int
+  ApproverId Int
+  StageId    Int
   active     Boolean
   createdAt  DateTime   @default(now())
+  Stages     Stages?    @relation(fields: [StageId], references: [id])
+  Positions  Positions? @relation(fields: [ApproverId], references: [id])
+}
+
+model Stages {
+  id         Int         @id @default(autoincrement())
+  state      String
+  PositionId Int
+  Position   Positions?  @relation(fields: [PositionId], references: [id])
+  Workflows  Workflows[]
   Orders     Orders[]
-  Positions  Positions? @relation(fields: [ApprovalId], references: [id])
 }
 
 model Tags {
@@ -70,10 +80,10 @@ model Products {
 
 model ProductOrders {
   id        Int       @id @default(autoincrement())
-  productId Int?
-  orderId   Int?
-  Products  Products? @relation(fields: [productId], references: [id])
-  Orders    Orders?   @relation(fields: [orderId], references: [id])
+  ProductId Int?
+  OrderId   Int?
+  Products  Products? @relation(fields: [ProductId], references: [id])
+  Orders    Orders?   @relation(fields: [OrderId], references: [id])
 }
 
 model Orders {
@@ -81,19 +91,10 @@ model Orders {
   AuthorId    Int
   qty         Int
   totalAmount Int
-  WorkflowId  Int
+  StageId     Int
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   Products    ProductOrders[]
-  Stages      Stages?
   Author      Positions?      @relation(fields: [AuthorId], references: [id])
-  Workflows   Workflows?      @relation(fields: [WorkflowId], references: [id])
-}
-
-model Stages {
-  id             Int        @id @default(autoincrement())
-  OrdersId       Int        @unique
-  UserPositionId Int?
-  UserPosition   Positions? @relation(fields: [UserPositionId], references: [id])
-  Orders         Orders     @relation(fields: [OrdersId], references: [id])
+  Stages      Stages?         @relation(fields: [StageId], references: [id])
 }

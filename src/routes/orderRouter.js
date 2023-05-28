@@ -24,26 +24,26 @@ route.post("/", OrderControl.createOrder);
 
 /**
  * @swagger
- * /need-approve/{id}:
- *  get:
+ * /need-action:
+ *   get:
  *    summary: Untuk mendapatkan Order yang akan di approve
  *    tags: [Orders]
  */
-route.get("/need-approve", OrderControl.getNeedApprove);
+route.get("/need-action", OrderControl.getNeedAction);
 
 /**
  * @swagger
  * /actions:
- *  get:
- *    summary: Untuk mendapatkan Order yang akan di approve
+ *   patch:
+ *    summary: untuk mengaprove order yang didapatkan
  *    tags: [Orders]
  */
-route.put("/actions", OrderControl.actionOrder);
+route.patch("/actions", OrderControl.actionOrder);
 
 /**
  * @swagger
  * /{id}:
- *  get:
+ *   get:
  *    summary: untuk mendapatkan Order detail
  *    tags: [Orders]
  */

@@ -70,7 +70,7 @@ export default class OrderControl {
     }
   }
 
-  static async getNeedApprove(req, res, next) {
+  static async getNeedAction(req, res, next) {
     try {
       const { userId } = req.query;
 

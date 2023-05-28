@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const secretKey = process.env.JSONWEBTOKEN_KEY;
 
-export const signToken = ({ id, username }) => {
-  return jwt.sign({ id, username }, secretKey);
+export const signToken = ({ id, username, expIn }) => {
+  return jwt.sign({ id, username }, secretKey, { expiresIn: expIn });
 };
 
 export const verifyToken = (token) => {

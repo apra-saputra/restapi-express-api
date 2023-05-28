@@ -14,15 +14,11 @@ const route = Router();
  *     responses:
  *       200:
  *         description: SUCCESS GET PRODUCTS
- *       404:
- *         description: DATA NOT FOUND
  *       500:
  *         description: INTERNAL SERVER ERROR
  */
-
 route.get("/", ProductControl.getProducts);
 
-//Swagger get Download Template
 /**
  * @swagger
  * /products/download-template:
@@ -33,7 +29,6 @@ route.get("/", ProductControl.getProducts);
  */
 route.get("/download-template", ProductControl.downloadTemplateProduct);
 
-//Swagger get Product
 /**
  * @swagger
  * /products/{id}:
@@ -57,36 +52,22 @@ route.get("/download-template", ProductControl.downloadTemplateProduct);
  */
 route.get("/:id", ProductControl.getProductById);
 
-//Swagger post Product
-/**
- * @swagger
- * /products:
- *    post:
- *      summary: membuat product baru dari file yang dikirimkan
- *      tags: [Products]
- *
- */
-route.post("/", ProductControl.createProduct);
-
-//Swagger put Image Product
 /**
  * @swagger
  * /products/{id}:
- *     put:
+ *    patch:
  *      summary: mengupdate gambar dengan mengirimkan file ke api
  *      tags: [Products]
  *
  */
-route.put("/:id", ProductControl.updateImageProduct);
+route.patch("/:id", ProductControl.updateImageProduct);
 
-//Swagger put Image Product
 /**
  * @swagger
  * /products/{id}:
- *     delete:
+ *    delete:
  *      summary: menghapus product secara hard delete
  *      tags: [Products]
- *
  */
 route.delete("/:id", ProductControl.hardDeleteProduct);
 

@@ -15,6 +15,10 @@ const errorHandler = (error, req, res, next) => {
     statusCode = 400;
     status = "EMAIL IS REQUIRED";
   }
+  if (name === "OTP_IS_REQUIRED") {
+    statusCode = 400;
+    status = "OTP IS REQUIRED";
+  }
   if (name === "USERNAME_IS_REQUIRED") {
     statusCode = 400;
     status = "USERNAME IS REQUIRED";

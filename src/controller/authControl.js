@@ -17,18 +17,17 @@ export default class AuthControl {
 
       if (!data.id) throw { name: "NOT_FOUND" };
 
-      const otp = generateOtp().toString();
+      const OTP = generateOtp().toString();
 
-      console.log(otp);
+      console.log({ OTP });
 
       await prisma.users.update({
         where: { id: data.id },
-        data: { otp },
+        data: { otp: OTP },
       });
 
       // otp should send to email or personal message
-
-      response(res, 200, "SUCCESS OTP SENT", { email: data.email });
+      response(res, 200, "SUCCESS SENT OTP", { email: data.email });
     } catch (error) {
       next(error);
     }
@@ -38,7 +37,9 @@ export default class AuthControl {
     try {
       const { email, OTP } = req.body;
 
-      if (!email || !OTP) throw { name: "EMAIL_IS_REQUIRED" };
+      if (!email) throw { name: "EMAIL_IS_REQUIRED" };
+
+      if (!OTP) throw { name: "OTP_IS_REQUIRED" };
 
       const data = await prisma.users.findUnique({ where: { email } });
 
@@ -47,8 +48,22 @@ export default class AuthControl {
       if (validateExpiredOtp(data))
         throw { name: "INVALID_LOGIN", message: "OTP IS EXPIRED" };
 
-      const token = signToken({ id: data.id, email: data.email });
-      response(res, 200, "SUCCESS OTP CONFIRM", { accessToken: token });
+      const workflow = await prisma.workflows.findMany({
+        where: { Positions: { Users: { id: Number(data.id) } } },
+        include: { Stages: true },
+      });
+
+      const token = signToken({
+        id: data.id,
+        email: data.email,
+        expIn: 15 * 1000 * 60,
+      });
+
+      response(res, 200, "SUCCESS CONFIRM OTP", {
+        accessToken: token,
+        exp: 15 * 60 * 1000,
+        access: workflow,
+      });
     } catch (error) {
       next(error);
     }

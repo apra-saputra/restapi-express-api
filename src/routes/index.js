@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authentication from "../middleware/authentication.js";
 import AuthControl from "../controller/authControl.js";
 import productRoute from "./productRouter.js";
 import orderRoute from "./orderRouter.js";
@@ -69,6 +70,9 @@ route.post("/confirm-otp", AuthControl.confirmOtp);
  *
  */
 route.post("/logout", AuthControl.logout);
+
+// route protect access
+route.use(authentication);
 
 // route from route
 route.use("/orders", orderRoute);

@@ -43,52 +43,6 @@ export default class ProductControl {
     }
   }
 
-  static async createProduct(req, res, next) {
-    try {
-      if (!req.files || !req.files.docs)
-        throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
-
-      const { docs } = req.files;
-      const extention = path.extname(docs.name);
-
-      // validation extention
-      const validationExt = [".xlsx", ".xls"];
-
-      if (!validationExt.includes(extention.toLowerCase()))
-        throw {
-          name: "CUSTOM",
-          code: 422,
-          message: "format must be xlsx, xls",
-        };
-
-      const workbook = XLSX.read(docs.data, { type: "buffer" });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }).splice(1);
-
-      if (!data.length) throw { name: "NOT_FOUND" };
-
-      const products = await prisma.products.createMany({
-        data: data.map((rows) => {
-          const obj = {
-            TagId: rows[1],
-            name: rows[2],
-            qty: rows[3],
-            price: rows[4],
-            description: rows[5],
-            statusOrder: "SATTLE",
-          };
-          return obj;
-        }),
-      });
-
-      response(res, 200, "SUCCESS CREATE PRODUCT", {
-        message: "Success Create Product",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
   static async downloadTemplateProduct(req, res, next) {
     try {
       const templatesDirectory = path.join(`public/templates`);

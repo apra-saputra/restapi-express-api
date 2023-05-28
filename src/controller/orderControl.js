@@ -9,18 +9,40 @@ const prisma = new PrismaClient();
 export default class OrderControl {
   static async getOrders(req, res, next) {
     try {
-      let { userId } = req.query;
-      let { limit, skip } = req.query;
+      const userId = req.user.id;
+
+      // const userId = 2; // for testing
+      let { limit, skip, typeService = "all" } = req.query;
 
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(skip) : 0;
 
-      if (!userId || isNaN(Number(userId)))
-        throw { name: "CUSTOM", message: "User is Needed" };
+      /**
+       * typeServie = "owner"
+       * typeServie = "done"
+       * typeServie = "approval"
+       */
+      let option = {};
 
-      let option = {
-        AuthorId: Number(userId),
-      };
+      switch (typeService) {
+        case "done":
+          option.ProductOrders = { every: { Stages: { state: "DONE" } } };
+          break;
+        case "owner":
+          option.AuthorId = Number(userId);
+          option.ProductOrders = { none: { Stages: { state: "DONE" } } };
+          break;
+        case "approval":
+          option.ProductOrders = {
+            every: { Stages: { PositionId: Number(userId) } },
+            none: { Stages: { state: "DONE" } },
+          };
+          break;
+        default:
+          option.AuthorId = Number(userId);
+          typeService = "owner";
+          break;
+      }
 
       const [orders, totalOrders] = await prisma.$transaction([
         prisma.orders.findMany({
@@ -34,12 +56,17 @@ export default class OrderControl {
         prisma.orders.count({ where: option }),
       ]);
 
-      response(res, 200, "SUCCESS GET ORDERS", {
-        data: orders,
-        count: totalOrders,
-        limit,
-        skip,
-      });
+      response(
+        res,
+        200,
+        `SUCCESS GET ORDERS, TYPE: ${typeService.toUpperCase()}`,
+        {
+          data: orders,
+          count: totalOrders,
+          limit,
+          skip,
+        }
+      );
     } catch (error) {
       next(error);
     }
@@ -70,24 +97,9 @@ export default class OrderControl {
     }
   }
 
-  static async getNeedApprove(req, res, next) {
-    try {
-      const { userId } = req.query;
-
-      const order = await prisma.productOrders.findFirst({
-        where: { Stages: { PositionId: Number(userId) } },
-        include: { Orders: true, Stages: true, Products: true },
-      });
-
-      response(res, 200, "SUCCESS GET ORDER NEED APPROVE", { data: order });
-    } catch (error) {
-      next(error);
-    }
-  }
-
   static async createOrder(req, res, next) {
     try {
-      const { userId } = req.query;
+      const userId = req.user.id;
       const { workflowId } = req.body;
 
       if (!req.files || !req.files.docs)
@@ -129,12 +141,10 @@ export default class OrderControl {
       });
 
       // validation workflow
-
       if (!workflow || workflow.Positions.id !== Number(userId))
         throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
 
-      // creating transaction
-
+      // creating transaction Products, Orders, RELATION TABLE
       const result = await transactionCreation(
         data.map((rows) => {
           const obj = {
@@ -165,7 +175,7 @@ export default class OrderControl {
       // dikirimkan lewat body
 
       // payload = [id, id, id]
-      const { userId } = req.query;
+      const userId = req.user.id;
       const { payload, actionId } = req.body;
 
       const data = JSON.parse(payload);
@@ -194,7 +204,22 @@ export default class OrderControl {
 
   static async modifyOrder(req, res, next) {}
 
-  static async cancelOrder(req, res, next) {}
+  static async actionCancelOrder(req, res, next) {}
+
+  static async getNeedAction(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      const order = await prisma.productOrders.findFirst({
+        where: { Stages: { PositionId: Number(userId) } },
+        include: { Orders: true, Stages: true, Products: true },
+      });
+
+      response(res, 200, "SUCCESS GET ORDER NEED APPROVE", { data: order });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 async function transactionCreation(

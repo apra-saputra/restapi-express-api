@@ -9,10 +9,9 @@ export default class WorkflowControl {
       const { userId } = req.params;
 
       const data = await prisma.workflows.findMany({
-        where: { ValidateUserId: Number(userId) },
+        where: { ApproverId: Number(userId) },
         include: {
-          Validaters: { include: { Users: true } },
-          Owner: { include: { Users: true } },
+          Positions: { include: { Users: true } },
         },
       });
 

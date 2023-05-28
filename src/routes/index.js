@@ -17,8 +17,7 @@ route.get("", (_, res) => {
  * /request-otp:
  *   post:
  *     summary: Login pengguna dan menghasilkan kode OTP
- *     tags:
- *       - users
+ *     tags: [Auth]
  *     description: Gunakan API ini untuk masuk ke sistem pengguna dan menghasilkan kode OTP
  *     requestBody:
  *       content:
@@ -48,7 +47,27 @@ route.get("", (_, res) => {
  *         description: Kesalahan server internal
  */
 route.post("/request-otp", AuthControl.requestOTP);
+
+//Swagger post confirm-Otp
+/**
+ * @swagger
+ * /confirm-otp:
+ *   post:
+ *      summary: Mengkonfirmasi OTP yang dikirimkan untuk di cek dan dibalikan berupa access token
+ *      tags: [Auth]
+ *
+ */
 route.post("/confirm-otp", AuthControl.confirmOtp);
+
+//Swagger post logout
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *      summary: Untuk menghapus akses yang diberikan
+ *      tags: [Auth]
+ *
+ */
 route.post("/logout", AuthControl.logout);
 
 // route from route

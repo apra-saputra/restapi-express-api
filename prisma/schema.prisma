@@ -28,7 +28,7 @@ model Positions {
   UserId    Int         @unique
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  workflows Workflows[]
+  Workflows Workflows[]
   Orders    Orders[]
   Stages    Stages[]
   Users     Users       @relation(fields: [UserId], references: [id])
@@ -47,54 +47,55 @@ model Workflows {
 }
 
 model Stages {
-  id         Int         @id @default(autoincrement())
-  state      String
-  PositionId Int
-  Position   Positions?  @relation(fields: [PositionId], references: [id])
-  Workflows  Workflows[]
-  Orders     Orders[]
+  id            Int             @id @default(autoincrement())
+  state         String
+  PositionId    Int
+  Position      Positions?      @relation(fields: [PositionId], references: [id])
+  Workflows     Workflows[]
+  ProductOrders ProductOrders[]
 }
 
 model Tags {
   id        Int        @id @default(autoincrement())
   name      String
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   Products  Products[]
 }
 
 model Products {
-  id          Int             @id @default(autoincrement())
-  name        String
-  description String          @db.Text
-  imgUrl      String?
-  qty         Int
-  price       Int
-  statusOrder String?
-  TagId       Int
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  Orders      ProductOrders[]
-  Tags        Tags?           @relation(fields: [TagId], references: [id])
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String          @db.Text
+  imgUrl        String?
+  qty           Int
+  price         Int
+  statusOrder   String?
+  TagId         Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ProductOrders ProductOrders[]
+  Tags          Tags?           @relation(fields: [TagId], references: [id])
 }
 
 model ProductOrders {
   id        Int       @id @default(autoincrement())
   ProductId Int?
   OrderId   Int?
+  StageId   Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   Products  Products? @relation(fields: [ProductId], references: [id])
   Orders    Orders?   @relation(fields: [OrderId], references: [id])
+  Stages    Stages?   @relation(fields: [StageId], references: [id])
 }
 
 model Orders {
-  id          Int             @id @default(autoincrement())
-  AuthorId    Int
-  qty         Int
-  totalAmount Int
-  StageId     Int
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  Products    ProductOrders[]
-  Author      Positions?      @relation(fields: [AuthorId], references: [id])
-  Stages      Stages?         @relation(fields: [StageId], references: [id])
+  id            Int             @id @default(autoincrement())
+  AuthorId      Int
+  qty           Int
+  totalAmount   Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ProductOrders ProductOrders[]
+  Author        Positions?      @relation(fields: [AuthorId], references: [id])
 }

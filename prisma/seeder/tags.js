@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-const tags = [{ name: "TOYOTA" }, { name: "HONDA" }, { name: "KAWASAKI" }];
+const tags = [{ name: "minuman" }, { name: "makanan" }, { name: "aksesoris" }];
 
 async function tagsSeeder() {
   await prisma.tags.createMany({ data: tags });

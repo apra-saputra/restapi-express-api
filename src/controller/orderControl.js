@@ -2,13 +2,15 @@ import { PrismaClient } from "@prisma/client";
 import path from "path";
 import * as XLSX from "xlsx";
 import response from "../helpers/response.js";
+import { getTotal } from "../helpers/utils.js";
 
 const prisma = new PrismaClient();
 
 export default class OrderControl {
   static async getOrders(req, res, next) {
     try {
-      let { limit, skip, userId } = req.query;
+      let { userId } = req.query;
+      let { limit, skip } = req.query;
 
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(skip) : 0;
@@ -21,7 +23,14 @@ export default class OrderControl {
       };
 
       const [orders, totalOrders] = await prisma.$transaction([
-        prisma.orders.findMany({ skip, take: limit, where: option }),
+        prisma.orders.findMany({
+          skip,
+          take: limit,
+          where: option,
+          include: {
+            ProductOrders: { include: { Stages: true, Products: true } },
+          },
+        }),
         prisma.orders.count({ where: option }),
       ]);
 
@@ -42,7 +51,15 @@ export default class OrderControl {
 
       const data = await prisma.orders.findUnique({
         where: { id: Number(id) },
-        include: { Products: true, Author: true },
+        include: {
+          ProductOrders: {
+            include: {
+              Products: { include: { Tags: true } },
+              Stages: { include: { Position: true } },
+            },
+          },
+          Author: true,
+        },
       });
 
       if (!data) throw { name: "NOT_FOUND" };
@@ -55,9 +72,11 @@ export default class OrderControl {
 
   static async getNeedApprove(req, res, next) {
     try {
-      const order = await prisma.productOrders.findMany({
-        where: { Orders: { Stages: { PositionId: Number(req.params.id) } } },
-        include: { Orders: { include: { Stages: true } } },
+      const { userId } = req.query;
+
+      const order = await prisma.productOrders.findFirst({
+        where: { Stages: { PositionId: Number(userId) } },
+        include: { Orders: true, Stages: true, Products: true },
       });
 
       response(res, 200, "SUCCESS GET ORDER NEED APPROVE", { data: order });
@@ -68,7 +87,8 @@ export default class OrderControl {
 
   static async createOrder(req, res, next) {
     try {
-      const { workflowId, userId } = req.body;
+      const { userId } = req.query;
+      const { workflowId } = req.body;
 
       if (!req.files || !req.files.docs)
         throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
@@ -113,31 +133,61 @@ export default class OrderControl {
       if (!workflow || workflow.Positions.id !== Number(userId))
         throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
 
-      // create product
-
-      const payload = data.map((rows) => {
-        const obj = {
-          TagId: rows[1],
-          name: rows[2],
-          qty: rows[3],
-          price: rows[4],
-          description: rows[5],
-          statusOrder: workflow.Stages.state,
-        };
-        return obj;
-      });
+      // creating transaction
 
       const result = await transactionCreation(
-        payload,
+        data.map((rows) => {
+          const obj = {
+            TagId: rows[1],
+            name: rows[2],
+            qty: rows[3],
+            price: rows[4],
+            description: rows[5],
+            statusOrder: workflow.Stages.state,
+          };
+          return obj;
+        }),
         Number(userId),
-        Number(workflow.id)
+        Number(workflow.StageId)
       );
 
-      console.log(result);
-
-      response(res, 201, "SUCCESS CREATE ORDER");
+      response(res, 201, "SUCCESS CREATE ORDER", result);
     } catch (error) {
+      console.error(error);
       await prisma.$disconnect();
+      next(error);
+    }
+  }
+
+  static async actionOrder(req, res, next) {
+    try {
+      // orderid dikirim array of id yang idnya berisi dari order
+      // dikirimkan lewat body
+
+      // payload = [id, id, id]
+      const { userId } = req.query;
+      const { payload, actionId } = req.body;
+
+      const data = JSON.parse(payload);
+
+      if (!payload.length)
+        throw { name: "CUSTOM", code: 404, message: "NO ORDER UPLOAD" };
+
+      const workflow = await prisma.workflows.findUnique({
+        where: { id: Number(actionId) },
+        include: { Positions: { include: { Users: true } }, Stages: true },
+      });
+
+      // validation workflow
+      if (!workflow || workflow.Positions.id !== Number(userId))
+        throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
+
+      const result = await transactionAction(data, workflow);
+
+      console.log({ result });
+
+      response(res, 200, "SUCCESS UPDATE ORDER", { message: workflow.message });
+    } catch (error) {
       next(error);
     }
   }
@@ -167,14 +217,15 @@ async function transactionCreation(
         AuthorId: Number(userid),
         qty: getTotal(payload, "qty"),
         totalAmount: getTotal(payload, "price") * getTotal(payload, "qty"),
-        StageId: Number(workflowId),
       },
     });
 
-    console.log({ products });
-
     const dataProductOrder = products.map((product) => {
-      return { ProductId: product.id, OrderId: orders.id };
+      return {
+        ProductId: product.id,
+        OrderId: orders.id,
+        StageId: Number(workflowId),
+      };
     });
 
     await prisma.productOrders.createMany({
@@ -182,6 +233,37 @@ async function transactionCreation(
     });
 
     return dataProductOrder;
+  });
+}
+
+async function transactionAction(orderIdInArray, workflow) {
+  return await prisma.$transaction(async (prisma) => {
+    const productOrder = await prisma.productOrders.findMany({
+      where: { OrderId: { in: orderIdInArray } },
+    });
+
+    let productId = [];
+
+    productOrder.forEach((item) => {
+      productId.push(item.ProductId);
+    });
+
+    await prisma.products.updateMany({
+      where: { id: { in: productId } },
+      data: { statusOrder: workflow.Stages.state },
+    });
+
+    await prisma.productOrders.updateMany({
+      where: { OrderId: { in: orderIdInArray } },
+      data: { StageId: Number(workflow.Stages.id) },
+    });
+
+    // await prisma.orders.updateMany({
+    //   where: { id: { in: orderIdInArray } },
+    //   data: { StageId: workflow.Stages.id },
+    // });
+
+    return "SUCCESS UPDATE";
   });
 }
 
@@ -211,14 +293,4 @@ async function validateTagIds(tagIds = []) {
     console.error(error);
     throw new Error("Gagal memvalidasi tag berdasarkan ID.");
   }
-}
-
-function getTotal(array = [], typeOfTotalKey = "") {
-  let result = 0;
-
-  array.forEach((item) => {
-    result += Number(item[typeOfTotalKey]);
-  });
-
-  return result;
 }

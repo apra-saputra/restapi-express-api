@@ -1,10 +1,13 @@
 import { Router } from "express";
 import AuthControl from "../controller/authControl.js";
 import productRoute from "./productRouter.js";
+import orderRoute from "./orderRouter.js";
+import tagRoute from "./tagRouter.js";
+import workflowRoute from "./workflowRouter.js";
 
 const route = Router();
 
-route.get("", (req, res) => {
+route.get("", (_, res) => {
   res.send("service ready...🚀");
 });
 
@@ -14,8 +17,7 @@ route.get("", (req, res) => {
  * /request-otp:
  *   post:
  *     summary: Login pengguna dan menghasilkan kode OTP
- *     tags:
- *       - users
+ *     tags: [Auth]
  *     description: Gunakan API ini untuk masuk ke sistem pengguna dan menghasilkan kode OTP
  *     requestBody:
  *       content:
@@ -45,8 +47,33 @@ route.get("", (req, res) => {
  *         description: Kesalahan server internal
  */
 route.post("/request-otp", AuthControl.requestOTP);
+
+//Swagger post confirm-Otp
+/**
+ * @swagger
+ * /confirm-otp:
+ *   post:
+ *      summary: Mengkonfirmasi OTP yang dikirimkan untuk di cek dan dibalikan berupa access token
+ *      tags: [Auth]
+ *
+ */
 route.post("/confirm-otp", AuthControl.confirmOtp);
 
+//Swagger post logout
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *      summary: Untuk menghapus akses yang diberikan
+ *      tags: [Auth]
+ *
+ */
+route.post("/logout", AuthControl.logout);
+
+// route from route
+route.use("/orders", orderRoute);
 route.use("/products", productRoute);
+route.use("/tags", tagRoute);
+route.use("/workflows", workflowRoute);
 
 export default route;

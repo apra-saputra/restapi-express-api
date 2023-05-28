@@ -28,8 +28,9 @@ model Positions {
   UserId    Int         @unique
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  workflows Workflows[]
+  Workflows Workflows[]
   Orders    Orders[]
+  Stages    Stages[]
   Users     Users       @relation(fields: [UserId], references: [id])
 }
 
@@ -37,46 +38,64 @@ model Workflows {
   id         Int        @id @default(autoincrement())
   action     String
   message    String
-  ApprovalId Int
+  ApproverId Int
+  StageId    Int
   active     Boolean
   createdAt  DateTime   @default(now())
-  Positions  Positions? @relation(fields: [ApprovalId], references: [id])
-  Orders     Orders[]
+  Stages     Stages?    @relation(fields: [StageId], references: [id])
+  Positions  Positions? @relation(fields: [ApproverId], references: [id])
+}
+
+model Stages {
+  id            Int             @id @default(autoincrement())
+  state         String
+  PositionId    Int
+  Position      Positions?      @relation(fields: [PositionId], references: [id])
+  Workflows     Workflows[]
+  ProductOrders ProductOrders[]
 }
 
 model Tags {
   id        Int        @id @default(autoincrement())
   name      String
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   Products  Products[]
 }
 
 model Products {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String   @db.Text
-  imgUrl      String?
-  qty         Int
-  price       Int
-  statusOrder String?
-  TagId       Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  Orders      Orders[]
-  Tags        Tags?    @relation(fields: [TagId], references: [id])
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String          @db.Text
+  imgUrl        String?
+  qty           Int
+  price         Int
+  statusOrder   String?
+  TagId         Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ProductOrders ProductOrders[]
+  Tags          Tags?           @relation(fields: [TagId], references: [id])
+}
+
+model ProductOrders {
+  id        Int       @id @default(autoincrement())
+  ProductId Int?
+  OrderId   Int?
+  StageId   Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Products  Products? @relation(fields: [ProductId], references: [id])
+  Orders    Orders?   @relation(fields: [OrderId], references: [id])
+  Stages    Stages?   @relation(fields: [StageId], references: [id])
 }
 
 model Orders {
-  id          Int        @id @default(autoincrement())
-  ProductId   Int
-  AuthorId    Int
-  qty         Int
-  totalAmount Int
-  WorkflowId  Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  Products    Products?  @relation(fields: [ProductId], references: [id])
-  Author      Positions? @relation(fields: [AuthorId], references: [id])
-  Workflows   Workflows? @relation(fields: [WorkflowId], references: [id])
+  id            Int             @id @default(autoincrement())
+  AuthorId      Int
+  qty           Int
+  totalAmount   Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ProductOrders ProductOrders[]
+  Author        Positions?      @relation(fields: [AuthorId], references: [id])
 }

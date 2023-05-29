@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export default class TagControl {
   static async getTags(_, res, next) {
     try {
-      const data = await prisma.tags.findMany({ where: { active: true } });
+      const data = await prisma.tags.findMany();
 
       response(res, 200, "SUCCESS GET TAGS", { data });
     } catch (error) {

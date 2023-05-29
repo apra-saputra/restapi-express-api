@@ -1,18 +1,28 @@
 import { PrismaClient } from "@prisma/client";
 import response from "../helpers/response.js";
 import path from "path";
-import * as XLSX from "xlsx";
 
 const prisma = new PrismaClient();
 
 export default class ProductControl {
-  static async getProducts(_, res, next) {
+  static async getProducts(req, res, next) {
     try {
-      const data = await prisma.products.findMany();
+      let { limit, skip } = req.query;
 
-      if (!data.length) throw { name: "NOT_FOUND" };
+      limit = limit ? Number(limit) : 10;
+      skip = skip ? Number(skip) : 0;
 
-      response(res, 200, "SUCCESS GET PRODUCTS", data);
+      const [products, totalProducts] = await prisma.$transaction([
+        prisma.products.findMany({ skip, take: limit }),
+        prisma.products.count(),
+      ]);
+
+      response(res, 200, "SUCCESS GET PRODUCTS", {
+        count: totalProducts,
+        data: products,
+        limit,
+        skip,
+      });
     } catch (error) {
       next(error);
     }
@@ -27,50 +37,6 @@ export default class ProductControl {
       if (!data) throw { name: "NOT_FOUND" };
 
       response(res, 200, "SUCCESS GET PRODUCT", data);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async createProduct(req, res, next) {
-    try {
-      if (!req.files || !req.files.docs)
-        throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
-
-      const { docs } = req.files;
-      const extention = path.extname(docs.name);
-
-      // validation extention
-      const validationExt = [".xlsx", ".xls"];
-
-      if (!validationExt.includes(extention.toLowerCase()))
-        throw {
-          name: "CUSTOM",
-          code: 422,
-          message: "format must be xlsx, xls",
-        };
-
-      const workbook = XLSX.read(docs.data, { type: "buffer" });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 }).splice(1);
-
-      if (!data.length) throw { name: "NOT_FOUND" };
-
-      const products = await prisma.products.createMany({
-        data: data.map((rows) => {
-          const obj = {
-            TagId: rows[1],
-            name: rows[2],
-            qty: rows[3],
-            price: rows[4],
-            description: rows[5],
-            statusOrder: "SATTLE",
-          };
-          return obj;
-        }),
-      });
-
-      response(res, 200, "SUCCESS CREATE PRODUCT");
     } catch (error) {
       next(error);
     }

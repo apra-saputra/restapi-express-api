@@ -7,9 +7,9 @@ const route = Router();
  * @swagger
  * /orders:
  *     get:
- *          summary: Mendapatkan semua file order
- *          tags: [Orders]
- *          parameter:
+ *       summary: Mendapatkan semua file order
+ *       tags: [Orders]
+ *       parameter:
  *     responses:
  *       200:
  *          description: SUCCESS GET ORDERS, TYPE {typeService}
@@ -21,9 +21,20 @@ route.get("/", OrderControl.getOrders);
 /**
  * @swagger
  * /orders:
- *  post:
- *    summary: Untuk membuat order dan product
- *    tags: [Orders]
+ *    post:
+ *       summary: Untuk membuat order dan product
+ *       tags: [Orders]
+ *       requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Nama pengguna
+ *             required:
+ *               - username
  */
 route.post("/", OrderControl.createOrder);
 

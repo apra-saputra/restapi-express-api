@@ -3,26 +3,32 @@ const prisma = new PrismaClient();
 
 const stage = [
   {
+    // id: 1,
     state: "CANCEL",
     PositionId: 3,
   },
   {
+    // id: 2,
     state: "AWAIT_APPROVE_SPV",
     PositionId: 2,
   },
   {
+    // id: 3,
     state: "AWAIT_APPROVE_MGR",
     PositionId: 1,
   },
   {
+    // id: 4,
     state: "NEED_MODIFY",
     PositionId: 3,
   },
   {
+    // id: 5,
     state: "DONE",
     PositionId: 3,
   },
   {
+    // id: 6,
     state: "REJECT",
     PositionId: 3,
   },
@@ -69,6 +75,13 @@ const workflow = [
     message: "ORDER_REJECT_BY_MGR",
     StageId: 6,
     ApproverId: 1,
+    active: true,
+  },
+  {
+    action: "ACT_REORDER_PRCH",
+    message: "MODIFY_START",
+    StageId: 2,
+    ApproverId: 3,
     active: true,
   },
 ];

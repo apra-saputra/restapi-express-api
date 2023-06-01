@@ -9,10 +9,10 @@ const prisma = new PrismaClient();
 export default class OrderControl {
   static async getOrders(req, res, next) {
     try {
-      const userId = req.user.id;
+      // const userId = req.user.id;
 
-      // const userId = 2; // for testing
-      let { limit, skip, typeService = "all" } = req.query;
+      const userId = 3; // for testing
+      let { limit, skip, typeService = "done" } = req.query;
 
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(skip) : 0;
@@ -21,6 +21,7 @@ export default class OrderControl {
        * typeServie = "owner"
        * typeServie = "done"
        * typeServie = "approval"
+       * typeServie = "modify"
        */
       let option = {};
 
@@ -36,6 +37,13 @@ export default class OrderControl {
           option.ProductOrders = {
             every: { Stages: { PositionId: Number(userId) } },
             none: { Stages: { state: "DONE" } },
+          };
+          break;
+        case "modify":
+          // const stage = 4
+          option.ProductOrders = {
+            every: { Stages: { PositionId: Number(userId) } },
+            every: { Stages: { id: 4 } },
           };
           break;
         default:
@@ -171,17 +179,20 @@ export default class OrderControl {
 
   static async actionOrder(req, res, next) {
     try {
-      // orderid dikirim array of id yang idnya berisi dari order
-      // dikirimkan lewat body
+      /**
+       * orderid dikirim array of id yang idnya berisi dari order
+       * dikirimkan lewat body
+       * example => payload = [id, id, id]
+       */
 
-      // payload = [id, id, id]
-      const userId = req.user.id;
+      // const userId = req.user.id;
+      const userId = 2; // for testing
       const { payload, actionId } = req.body;
 
       const data = JSON.parse(payload);
 
       if (!payload.length)
-        throw { name: "CUSTOM", code: 404, message: "NO ORDER UPLOAD" };
+        throw { name: "CUSTOM", code: 404, message: "NO ORDER SENT" };
 
       const workflow = await prisma.workflows.findUnique({
         where: { id: Number(actionId) },
@@ -196,13 +207,39 @@ export default class OrderControl {
 
       console.log({ result });
 
-      response(res, 200, "SUCCESS UPDATE ORDER", { message: workflow.message });
+      response(res, 200, "SUCCESS ACTION ORDER", { message: workflow.message });
     } catch (error) {
       next(error);
     }
   }
 
-  static async modifyOrder(req, res, next) {}
+  static async getModifyByOrder(req, res, next) {
+    try {
+      const { orderId } = req.params;
+      const stage = 4; // this is stand for where order into stage "NEED_MODIFY"
+
+      const products = await prisma.products.findMany({
+        where: {
+          AND: [
+            {
+              ProductOrders: { every: { OrderId: Number(orderId) } },
+            },
+            {
+              ProductOrders: { every: { StageId: Number(stage) } },
+            },
+          ],
+        },
+      });
+
+      response(res, 200, "SUCCESS GET MODIFY PRODUCT", {
+        data: products,
+        count: products.length,
+      });
+    } catch (error) {
+      await prisma.$disconnect();
+      next(error);
+    }
+  }
 
   static async actionCancelOrder(req, res, next) {}
 

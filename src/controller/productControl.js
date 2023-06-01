@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import response from "../helpers/response.js";
 import path from "path";
-import * as XLSX from "xlsx";
 
 const prisma = new PrismaClient();
 

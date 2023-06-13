@@ -1,4 +1,4 @@
-# API_SPECS
+# API_SPEC
 
 - description : sebuah API yang digunakan untuk melakukan approval ketika pembuatan order dengan layer user yang berbeda beda posisinya
 

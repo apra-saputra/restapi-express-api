@@ -19,6 +19,7 @@ export default class AuthControl {
 
       const OTP = generateOtp().toString();
 
+      // Show OTP On Terminal For Debug
       console.log({ OTP });
 
       await prisma.users.update({
@@ -26,7 +27,7 @@ export default class AuthControl {
         data: { otp: OTP },
       });
 
-      // otp should send to email or personal message
+      // OTP Should Send to Personal User
       response(res, 200, "SUCCESS SENT OTP", { email: data.email });
     } catch (error) {
       next(error);
@@ -46,7 +47,7 @@ export default class AuthControl {
       if (data.otp !== OTP.toString()) throw { name: "INVALID_LOGIN" };
 
       if (validateExpiredOtp(data))
-        throw { name: "INVALID_LOGIN", message: "OTP IS EXPIRED" };
+        throw { name: "CUSTOM", code: 419, message: "OTP IS EXPIRED" };
 
       const workflow = await prisma.workflows.findMany({
         where: { Positions: { Users: { id: Number(data.id) } } },

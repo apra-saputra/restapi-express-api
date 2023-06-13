@@ -73,6 +73,4 @@ route.patch("/actions", OrderControl.actionOrder);
  */
 route.get("/:id", OrderControl.getOrdersById);
 
-// route.delete("/:id", OrderControl.cancelOrder);
-
 export default route;

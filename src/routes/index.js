@@ -4,7 +4,6 @@ import AuthControl from "../controller/authControl.js";
 import productRoute from "./productRouter.js";
 import orderRoute from "./orderRouter.js";
 import tagRoute from "./tagRouter.js";
-import workflowRoute from "./workflowRouter.js";
 
 const route = Router();
 
@@ -12,10 +11,10 @@ route.get("", (_, res) => {
   res.send("service ready...🚀");
 });
 
-//Swagger post request-otp
+//Swagger post login
 /**
  * @swagger
- * /request-otp:
+ * /login:
  *   post:
  *     summary: Login pengguna dan menghasilkan kode OTP
  *     tags: [Auth]
@@ -47,7 +46,7 @@ route.get("", (_, res) => {
  *       500:
  *         description: Kesalahan server internal
  */
-route.post("/request-otp", AuthControl.requestOTP);
+route.post("/login", AuthControl.requestOTP);
 
 //Swagger post confirm-Otp
 /**
@@ -69,7 +68,7 @@ route.post("/confirm-otp", AuthControl.confirmOtp);
  *      tags: [Auth]
  *
  */
-route.post("/logout", AuthControl.logout);
+route.patch("/logout", AuthControl.logout);
 
 // route protect access
 route.use(authentication);
@@ -78,6 +77,5 @@ route.use(authentication);
 route.use("/orders", orderRoute);
 route.use("/products", productRoute);
 route.use("/tags", tagRoute);
-route.use("/workflows", workflowRoute);
 
 export default route;

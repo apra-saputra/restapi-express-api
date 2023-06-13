@@ -64,7 +64,7 @@ export default class ProductControl {
       if (!products) throw { name: "NOT_FOUND" };
 
       if (!req.files || !req.files.image)
-        throw { name: "CUSTOM", code: 404, message: "NO FILE UPLOADED" };
+        throw { name: "CUSTOM", code: 400, message: "NO FILE UPLOADED" };
 
       const { image } = req.files;
       const extention = path.extname(image.name);
@@ -86,7 +86,7 @@ export default class ProductControl {
       if (imgSize > sizeValidation * 1024 * 1024)
         throw {
           name: "CUSTOM",
-          code: 422,
+          code: 413,
           message: `size must be less than ${sizeValidation}MB`,
         };
 
@@ -106,13 +106,26 @@ export default class ProductControl {
 
   static async hardDeleteProduct(req, res, next) {
     try {
-      const data = await prisma.products.delete({
-        where: { id: Number(req.params.id) },
+      const product = await prisma.products.findFirst({
+        where: {
+          AND: [
+            { id: Number(req.params.id) },
+            {
+              ProductOrders: {
+                every: { OR: [{ StageId: 5 }, { StageId: 6 }] },
+              },
+            },
+          ],
+        },
       });
 
-      if (!data) throw { name: "NOT_FOUND" };
+      if (!product) throw { name: "NOT_FOUND" };
 
-      response(res, 200, "SUCCESS DELETE PRODUCT", data);
+      const data = await prisma.products.delete({
+        where: { id: product.id },
+      });
+
+      response(res, 200, "SUCCESS DELETE PRODUCT", { data });
     } catch (error) {
       next(error);
     }

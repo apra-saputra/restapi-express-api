@@ -20,6 +20,8 @@ export default class TagControl {
         where: { id: Number(req.params.id) },
       });
 
+      if (!data) throw { name: "NOT_FOUND" };
+
       response(res, 200, "SUCCESS GET TAG", { data });
     } catch (error) {
       next(error);
@@ -30,13 +32,25 @@ export default class TagControl {
     try {
       const { name } = req.body;
 
-      const data = await prisma.tags.update({
-        where: { id: Number(req.params.id) },
-        data: { name },
+      if (!name)
+        throw { name: "CUSTOM", code: 400, message: "NAME IS REQUIRED" };
+
+      const data = await prisma.$transaction(async (prisma) => {
+        const tags = await prisma.tags.findUnique({
+          where: { id: Number(req.params.id) },
+        });
+
+        if (!tags) throw { name: "NOT_FOUND" };
+
+        return await prisma.tags.update({
+          where: { id: Number(req.params.id) },
+          data: { name },
+        });
       });
 
       response(res, 200, "SUCCESS UPDATE TAG", { data });
     } catch (error) {
+      await prisma.$disconnect();
       next(error);
     }
   }

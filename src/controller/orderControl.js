@@ -9,10 +9,10 @@ const prisma = new PrismaClient();
 export default class OrderControl {
   static async getOrders(req, res, next) {
     try {
-      // const userId = req.user.id;
+      const userId = req.user.id;
 
-      const userId = 3; // for testing
-      let { limit, skip, typeService = "done" } = req.query;
+      // const userId = 3; // for testing
+      let { limit, skip, typeService = "owner" } = req.query;
 
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(skip) : 0;
@@ -45,10 +45,6 @@ export default class OrderControl {
             every: { Stages: { PositionId: Number(userId) } },
             every: { Stages: { id: 4 } },
           };
-          break;
-        default:
-          option.AuthorId = Number(userId);
-          typeService = "owner";
           break;
       }
 
@@ -123,7 +119,7 @@ export default class OrderControl {
         throw {
           name: "CUSTOM",
           code: 422,
-          message: "format must be xlsx, xls",
+          message: "FORMAT MUST BE XLSX, XLS",
         };
 
       const workbook = XLSX.read(docs.data, { type: "buffer" });
@@ -169,7 +165,7 @@ export default class OrderControl {
         Number(workflow.StageId)
       );
 
-      response(res, 201, "SUCCESS CREATE ORDER", result);
+      response(res, 201, "SUCCESS CREATE ORDER", { data: result });
     } catch (error) {
       console.error(error);
       await prisma.$disconnect();
@@ -185,8 +181,8 @@ export default class OrderControl {
        * example => payload = [id, id, id]
        */
 
-      // const userId = req.user.id;
-      const userId = 2; // for testing
+      const userId = req.user.id;
+      // const userId = 2; // for testing
       const { payload, actionId } = req.body;
 
       const data = JSON.parse(payload);
@@ -207,56 +203,14 @@ export default class OrderControl {
 
       console.log({ result });
 
-      response(res, 200, "SUCCESS ACTION ORDER", { message: workflow.message });
+      response(res, 200, "SUCCESS ACTION ORDER", {
+        data: { message: workflow.message },
+      });
     } catch (error) {
       next(error);
     }
   }
 
-  static async getModifyByOrder(req, res, next) {
-    try {
-      const { orderId } = req.params;
-      const stage = 4; // this is stand for where order into stage "NEED_MODIFY"
-
-      const products = await prisma.products.findMany({
-        where: {
-          AND: [
-            {
-              ProductOrders: { every: { OrderId: Number(orderId) } },
-            },
-            {
-              ProductOrders: { every: { StageId: Number(stage) } },
-            },
-          ],
-        },
-      });
-
-      response(res, 200, "SUCCESS GET MODIFY PRODUCT", {
-        data: products,
-        count: products.length,
-      });
-    } catch (error) {
-      await prisma.$disconnect();
-      next(error);
-    }
-  }
-
-  static async actionCancelOrder(req, res, next) {}
-
-  static async getNeedAction(req, res, next) {
-    try {
-      const userId = req.user.id;
-
-      const order = await prisma.productOrders.findFirst({
-        where: { Stages: { PositionId: Number(userId) } },
-        include: { Orders: true, Stages: true, Products: true },
-      });
-
-      response(res, 200, "SUCCESS GET ORDER NEED APPROVE", { data: order });
-    } catch (error) {
-      next(error);
-    }
-  }
 }
 
 async function transactionCreation(

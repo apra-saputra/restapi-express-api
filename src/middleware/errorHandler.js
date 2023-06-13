@@ -10,33 +10,30 @@ const errorHandler = (error, req, res, next) => {
   if (name === "NOT_FOUND") {
     statusCode = 404;
     status = "DATA NOT FOUND";
-  }
-  if (name === "EMAIL_IS_REQUIRED") {
+  } else if (name === "EMAIL_IS_REQUIRED") {
     statusCode = 400;
     status = "EMAIL IS REQUIRED";
-  }
-  if (name === "OTP_IS_REQUIRED") {
+  } else if (name === "OTP_IS_REQUIRED") {
     statusCode = 400;
     status = "OTP IS REQUIRED";
-  }
-  if (name === "USERNAME_IS_REQUIRED") {
+  } else if (name === "USERNAME_IS_REQUIRED") {
     statusCode = 400;
     status = "USERNAME IS REQUIRED";
-  }
-  if (name === "INVALID_LOGIN") {
+  } else if (name === "INVALID_LOGIN") {
     statusCode = 401;
     status = "INVALID LOGIN";
-  }
-  if (name === "UNAUTHORIZE") {
+  } else if (name === "UNAUTHORIZE") {
+    statusCode = 403;
+    status = "ACCESS TOKEN INVALID";
+  } else if (name === "CUSTOM") {
+    statusCode = code ? code : statusCode;
+    status = message ? message : status;
+  } else if (name === "JsonWebTokenError") {
     statusCode = 403;
     status = "ACCESS TOKEN INVALID";
   }
-  if (name === "CUSTOM") {
-    statusCode = code ? code : statusCode;
-    status = message ? message : status;
-  }
 
-  response(res, statusCode, "ERROR", { ErrorMessage: status });
+  response(res, statusCode, "ERROR", { errorMessage: status });
 };
 
 export default errorHandler;

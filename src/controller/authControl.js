@@ -15,16 +15,16 @@ export default class AuthControl {
 
       const data = await prisma.users.findUnique({ where: { username } });
 
-      if (!data.id) throw { name: "NOT_FOUND" };
+      if (!data) throw { name: "NOT_FOUND" };
 
-      const OTP = generateOtp().toString();
+      const OTP = generateOtp();
 
       // Show OTP On Terminal For Debug
       console.log({ OTP });
 
       await prisma.users.update({
         where: { id: data.id },
-        data: { otp: OTP },
+        data: { otp: OTP.toString() },
       });
 
       // OTP Should Send to Personal User
@@ -56,7 +56,7 @@ export default class AuthControl {
 
       const token = signToken({
         id: data.id,
-        email: data.email,
+        username: data.username,
         expIn: 15 * 1000 * 60,
       });
 
@@ -72,10 +72,12 @@ export default class AuthControl {
 
   static async logout(req, res, next) {
     try {
-      await prisma.users.update({
+      const user = await prisma.users.update({
         where: { id: Number(req.user.id) },
         data: { otp: null },
       });
+
+      if (!user) throw { name: "NOT_FOUND" };
 
       response(res, 200, "SUCCESS LOGOUT");
     } catch (error) {

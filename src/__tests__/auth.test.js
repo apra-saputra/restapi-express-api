@@ -20,7 +20,6 @@ describe("Auth Service - POST /login", () => {
         username: "operator_test",
       })
       .then((res) => {
-        console.log({ body: res.body });
         expect(res.status).toBe(200);
         expect(res.body).toBeInstanceOf(Object);
         expect(res.body).toHaveProperty("statusCode", 200);
@@ -247,7 +246,7 @@ describe("Auth Service - PATCH /logout", () => {
       });
   });
 
-  describe.only("Failed - Get Access Token", () => {
+  describe("Failed - Get Access Token", () => {
     let wrongId = 100;
 
     beforeAll(async () => {

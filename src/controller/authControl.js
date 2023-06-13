@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 export default class AuthControl {
   static async requestOTP(req, res, next) {
     try {
-      // console.log({req})
       const { username } = req.body;
 
       if (!username) throw { name: "USERNAME_IS_REQUIRED" };
@@ -70,18 +69,12 @@ export default class AuthControl {
     }
   }
 
-  static async logout(req, res, next) {
-    try {
-      const user = await prisma.users.update({
-        where: { id: Number(req.user.id) },
-        data: { otp: null },
-      });
+  static async logout(req, res) {
+    await prisma.users.update({
+      where: { id: Number(req.user.id) },
+      data: { otp: null },
+    });
 
-      if (!user) throw { name: "NOT_FOUND" };
-
-      response(res, 200, "SUCCESS LOGOUT");
-    } catch (error) {
-      next(error);
-    }
+    response(res, 200, "SUCCESS LOGOUT");
   }
 }

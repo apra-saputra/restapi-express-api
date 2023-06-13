@@ -13,8 +13,8 @@ export default class ProductControl {
       skip = skip ? Number(skip) : 0;
 
       const [products, totalProducts] = await prisma.$transaction([
-        prisma.products.findMany({ skip, take: limit }),
-        prisma.products.count(),
+        await prisma.products.findMany({ skip, take: limit }),
+        await prisma.products.count(),
       ]);
 
       response(res, 200, "SUCCESS GET PRODUCTS", {

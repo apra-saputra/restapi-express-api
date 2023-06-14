@@ -6,7 +6,6 @@ import ProductControl from "../controller/productControl.js";
 import path from "path";
 
 let prisma, server, accessTokenMock, product, idMock;
-// invalidAccessTokenMock = "dsadasd.23231";
 
 const { getProducts, downloadTemplateProduct, updateImageProduct } =
     ProductControl,
@@ -83,7 +82,6 @@ describe("Products Service - Get Products", () => {
 
 describe("Products Service - GET Template for Product", () => {
   test("GET /products/download-template - Success", async () => {
-
     const res = await request(server)
       .get("/products/download-template")
       .set("Authorization", `Bearer ${accessTokenMock}`);
@@ -142,7 +140,8 @@ describe("Products Service - Update Products Image", () => {
       "D:/coding/project/restapi-express-api/public/images/579b2d647acd954886ab1aa55032e66e.jpg",
     invalidFilePath =
       "D:/coding/project/restapi-express-api/public/templates/template_product.xlsx",
-    BigSizeFilePath = "D:/coding/project/Snake_River_(5mb).jpg";
+    BigSizeFilePath =
+      "D:/coding/project/restapi-express-api/temp/Snake_River_(5mb).jpg";
 
   beforeEach(async () => {
     product = await prisma.products.create({

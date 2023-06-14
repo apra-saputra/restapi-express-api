@@ -4,7 +4,6 @@ import app from "../app.js";
 import { signToken } from "../helpers/jwt.js";
 import ProductControl from "../controller/productControl.js";
 import path from "path";
-import fs from "fs";
 
 let prisma, server, accessTokenMock, product, idMock;
 // invalidAccessTokenMock = "dsadasd.23231";
@@ -84,8 +83,6 @@ describe("Products Service - Get Products", () => {
 
 describe("Products Service - GET Template for Product", () => {
   test("GET /products/download-template - Success", async () => {
-    // const templatesDirectory = path.join(`public/templates`);
-    // const filePath = path.join(templatesDirectory, "template_product.xlsx");
 
     const res = await request(server)
       .get("/products/download-template")
@@ -98,29 +95,15 @@ describe("Products Service - GET Template for Product", () => {
   });
 
   test("GET /products - Next Error", async () => {
-    // Mock request object
     const req = { query: {} };
     const res = {};
     const next = jest.fn();
-
-    // Mock error yang akan dilempar saat proses download
     const errorMock = new Error("Test Error");
-
-    // Mock path menuju file template yang tidak valid
     const templatesDirectory = "invalid/path/to/templates";
     const filePath = path.join(templatesDirectory, "template_product.xlsx");
 
-    // Panggil fungsi downloadTemplateProduct
     await downloadTemplateProduct(req, res, next);
 
-    // Periksa apakah res.download terpanggil dengan argumen yang benar
-    // expect(res.download).toHaveBeenCalledWith(filePath, expect.any(Function));
-
-    // Panggil callback res.download dengan error yang dilempar
-    // res.download.mock.calls[0][1](errorMock);
-
-    // Periksa apakah next terpanggil dengan error yang benar
-    // expect(next).toHaveBeenCalledWith(errorMock);
     expect(next).toHaveBeenCalledTimes(1);
   });
 });

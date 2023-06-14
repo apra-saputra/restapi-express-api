@@ -28,7 +28,7 @@ const errorHandler = (error, req, res, next) => {
   } else if (name === "CUSTOM") {
     statusCode = code ? code : statusCode;
     status = message ? message : status;
-  } else if (name === "JsonWebTokenError") {
+  } else if (error === "JsonWebTokenError" || name === "JsonWebTokenError") {
     statusCode = 403;
     status = "ACCESS TOKEN INVALID";
   }

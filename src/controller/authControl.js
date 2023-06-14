@@ -69,12 +69,16 @@ export default class AuthControl {
     }
   }
 
-  static async logout(req, res) {
-    await prisma.users.update({
-      where: { id: Number(req.user.id) },
-      data: { otp: null },
-    });
+  static async logout(req, res, next) {
+    try {
+      await prisma.users.update({
+        where: { id: Number(req.user.id) },
+        data: { otp: null },
+      });
 
-    response(res, 200, "SUCCESS LOGOUT");
+      response(res, 200, "SUCCESS LOGOUT");
+    } catch (error) {
+      next(error);
+    }
   }
 }

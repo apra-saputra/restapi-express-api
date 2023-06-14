@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 const stage = [
   {
     // id: 1,
-    state: "CANCEL",
+    state: "INACTIVE",
     PositionId: 3,
   },
   {

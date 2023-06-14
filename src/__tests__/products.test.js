@@ -6,7 +6,6 @@ import ProductControl from "../controller/productControl.js";
 import path from "path";
 
 let prisma, server, accessTokenMock, product, idMock;
-// invalidAccessTokenMock = "dsadasd.23231";
 
 const { getProducts, downloadTemplateProduct, updateImageProduct } =
     ProductControl,
@@ -83,7 +82,6 @@ describe("Products Service - Get Products", () => {
 
 describe("Products Service - GET Template for Product", () => {
   test("GET /products/download-template - Success", async () => {
-
     const res = await request(server)
       .get("/products/download-template")
       .set("Authorization", `Bearer ${accessTokenMock}`);
@@ -109,6 +107,20 @@ describe("Products Service - GET Template for Product", () => {
 });
 
 describe("Products Service - GET Products By ID", () => {
+  beforeEach(async () => {
+    product = await prisma.products.create({
+      data: {
+        name: "Good Day test",
+        description: "Minuman bersoda",
+        qty: 10,
+        price: 8000,
+        TagId: 1,
+      },
+    });
+
+    idMock = product.id;
+  });
+
   test("GET /products/{id} - Success", async () => {
     const res = await request(server)
       .get(`/products/${idMock}`)
@@ -121,6 +133,8 @@ describe("Products Service - GET Products By ID", () => {
     expect(res.body).toHaveProperty("payload", expect.any(Object));
     expect(res.body.payload).toHaveProperty("data", expect.any(Object));
     expect(res.body.payload.data).toHaveProperty("id", idMock);
+
+    await prisma.products.delete({ where: { id: idMock } });
   });
 
   test("GET /products/{id} - Failed - id invalid", async () => {
@@ -142,7 +156,8 @@ describe("Products Service - Update Products Image", () => {
       "D:/coding/project/restapi-express-api/public/images/579b2d647acd954886ab1aa55032e66e.jpg",
     invalidFilePath =
       "D:/coding/project/restapi-express-api/public/templates/template_product.xlsx",
-    BigSizeFilePath = "D:/coding/project/Snake_River_(5mb).jpg";
+    BigSizeFilePath =
+      "D:/coding/project/restapi-express-api/temp/Snake_River_(5mb).jpg";
 
   beforeEach(async () => {
     product = await prisma.products.create({

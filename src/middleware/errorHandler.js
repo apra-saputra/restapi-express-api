@@ -25,6 +25,9 @@ const errorHandler = (error, req, res, next) => {
   } else if (name === "UNAUTHORIZE") {
     statusCode = 403;
     status = "ACCESS TOKEN INVALID";
+  } else if (name === "NO_ACCESS") {
+    statusCode = 401;
+    status = "ACCESS DENIED";
   } else if (name === "CUSTOM") {
     statusCode = code ? code : statusCode;
     status = message ? message : status;

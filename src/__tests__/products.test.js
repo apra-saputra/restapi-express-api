@@ -107,6 +107,20 @@ describe("Products Service - GET Template for Product", () => {
 });
 
 describe("Products Service - GET Products By ID", () => {
+  beforeEach(async () => {
+    product = await prisma.products.create({
+      data: {
+        name: "Good Day test",
+        description: "Minuman bersoda",
+        qty: 10,
+        price: 8000,
+        TagId: 1,
+      },
+    });
+
+    idMock = product.id;
+  });
+
   test("GET /products/{id} - Success", async () => {
     const res = await request(server)
       .get(`/products/${idMock}`)
@@ -119,6 +133,8 @@ describe("Products Service - GET Products By ID", () => {
     expect(res.body).toHaveProperty("payload", expect.any(Object));
     expect(res.body.payload).toHaveProperty("data", expect.any(Object));
     expect(res.body.payload.data).toHaveProperty("id", idMock);
+
+    await prisma.products.delete({ where: { id: idMock } });
   });
 
   test("GET /products/{id} - Failed - id invalid", async () => {

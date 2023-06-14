@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import path from "path";
 import * as XLSX from "xlsx";
-import response from "../../helpers/response.js";
+import response from "../helpers/response.js";
 import {
   transactionAction,
   transactionCreation,
   validateTagIds,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const prisma = new PrismaClient();
 
@@ -171,7 +171,6 @@ export default class OrderControl {
 
       response(res, 201, "SUCCESS CREATE ORDER", { data: result });
     } catch (error) {
-      console.error(error);
       await prisma.$disconnect();
       next(error);
     }
@@ -189,13 +188,11 @@ export default class OrderControl {
       // const userId = 2; // for testing
       const { payload, actionId } = req.body;
 
-      const data = JSON.parse(payload);
-
-      if (!payload.length)
+      if (!payload || !payload.length)
         throw { name: "CUSTOM", code: 404, message: "NO ORDER SENT" };
 
-      const workflow = await prisma.workflows.findUnique({
-        where: { id: Number(actionId) },
+      const workflow = await prisma.workflows.findFirst({
+        where: { id: Number(actionId), active: true },
         include: { Positions: { include: { Users: true } }, Stages: true },
       });
 
@@ -203,7 +200,7 @@ export default class OrderControl {
       if (!workflow || workflow.Positions.id !== Number(userId))
         throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
 
-      const result = await transactionAction(data, workflow);
+      const result = await transactionAction(payload, workflow);
 
       console.log({ result });
 

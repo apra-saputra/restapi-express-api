@@ -13,8 +13,7 @@ export function validateExpiredOtp(data = {}) {
     (nowTime.getTime() - dataTime.getTime()) / 1000 // in second
   );
 
-  if (timeDifferenceInSeconds < setTime) {
-    return false;
+  if (timeDifferenceInSeconds > setTime) {
+    return true;
   }
-  return true;
 }

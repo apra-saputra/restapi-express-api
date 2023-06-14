@@ -11,9 +11,9 @@ async function authentication(req, res, next) {
 
     const accessToken = authorization.split(" ")[1];
 
-    const payload = verifyToken(accessToken);
+    if (!accessToken) throw { name: "UNAUTHORIZE" };
 
-    if (!payload) throw { name: "UNAUTHORIZE" };
+    const payload = verifyToken(accessToken);
 
     const user = await prisma.positions.findUnique({
       where: { UserId: Number(payload.id) },

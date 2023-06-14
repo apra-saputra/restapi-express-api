@@ -13,8 +13,8 @@ export default class ProductControl {
       skip = skip ? Number(skip) : 0;
 
       const [products, totalProducts] = await prisma.$transaction([
-        await prisma.products.findMany({ skip, take: limit }),
-        await prisma.products.count(),
+        prisma.products.findMany({ skip, take: limit }),
+        prisma.products.count(),
       ]);
 
       response(res, 200, "SUCCESS GET PRODUCTS", {
@@ -36,7 +36,7 @@ export default class ProductControl {
 
       if (!data) throw { name: "NOT_FOUND" };
 
-      response(res, 200, "SUCCESS GET PRODUCT", data);
+      response(res, 200, "SUCCESS GET PRODUCT", { data });
     } catch (error) {
       next(error);
     }
@@ -74,20 +74,20 @@ export default class ProductControl {
 
       // set validation
       const fileTypeValidation = [".jpg", ".jpeg", ".png"];
-      const sizeValidation = 3;
+      const sizeValidation = 1;
 
       if (!fileTypeValidation.includes(extention.toLowerCase()))
         throw {
           name: "CUSTOM",
           code: 422,
-          message: "format must be jpg, jpeg, png",
+          message: "format must be jpg, jpeg, png".toUpperCase(),
         };
 
       if (imgSize > sizeValidation * 1024 * 1024)
         throw {
           name: "CUSTOM",
           code: 413,
-          message: `size must be less than ${sizeValidation}MB`,
+          message: `size must be less than ${sizeValidation} MB`.toUpperCase(),
         };
 
       image.mv(`./public/images/${fileName}`, async (err) => {
@@ -97,7 +97,7 @@ export default class ProductControl {
           where: { id: products.id },
           data: { imgUrl: url },
         });
-        response(res, 200, "SUCCESS UPDATE PRODUCT", data);
+        response(res, 200, "SUCCESS UPDATE PRODUCT", { data });
       });
     } catch (error) {
       next(error);

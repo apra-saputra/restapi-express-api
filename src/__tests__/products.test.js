@@ -92,6 +92,22 @@ describe("Products Service - GET Template for Product", () => {
     );
   });
 
+  test("GET /products/download-template - Error", async () => {
+    const req = {};
+    const res = {};
+    const next = jest.fn();
+    const errorMock = new Error("Test Error");
+
+    // Mock throw error when res.download is called
+    res.download = jest.fn().mockImplementationOnce((filePath, callback) => {
+      callback(errorMock);
+    });
+
+    await downloadTemplateProduct(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(errorMock);
+  });
+
   test("GET /products - Next Error", async () => {
     const req = { query: {} };
     const res = {};
@@ -121,6 +137,10 @@ describe("Products Service - GET Products By ID", () => {
     idMock = product.id;
   });
 
+  afterEach(async () => {
+    await prisma.products.delete({ where: { id: idMock } });
+  });
+
   test("GET /products/{id} - Success", async () => {
     const res = await request(server)
       .get(`/products/${idMock}`)
@@ -133,8 +153,6 @@ describe("Products Service - GET Products By ID", () => {
     expect(res.body).toHaveProperty("payload", expect.any(Object));
     expect(res.body.payload).toHaveProperty("data", expect.any(Object));
     expect(res.body.payload.data).toHaveProperty("id", idMock);
-
-    await prisma.products.delete({ where: { id: idMock } });
   });
 
   test("GET /products/{id} - Failed - id invalid", async () => {

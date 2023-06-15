@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/bin/www.js",
     "dev": "nodemon src/bin/www.js",
-    "test": "jest --forceExit --runInBand --coverage",
+    "test": "jest --forceExit --runInBand --coverage --silent",
     "reset-db": "prisma migrate reset -f"
   },
   "prisma": {

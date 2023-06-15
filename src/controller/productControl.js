@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import response from "../helpers/response.js";
 import path from "path";
+import { transactionGetData } from "../helpers/utils.js";
 
 const prisma = new PrismaClient();
 
@@ -12,10 +13,23 @@ export default class ProductControl {
       limit = limit ? Number(limit) : 10;
       skip = skip ? Number(skip) : 0;
 
-      const [products, totalProducts] = await prisma.$transaction([
-        prisma.products.findMany({ skip, take: limit }),
-        prisma.products.count(),
-      ]);
+      const [products, totalProducts] = await transactionGetData("products", {
+        skip,
+        limit,
+        whereOption: {
+          NOT: {
+            ProductOrders: {
+              every: {
+                AND: [
+                  { Stages: { state: "INACTIVE" } },
+                  { Stages: { state: "REJECT" } },
+                ],
+              },
+            },
+          },
+        },
+        includeOption: { Tags: true },
+      });
 
       response(res, 200, "SUCCESS GET PRODUCTS", {
         count: totalProducts,

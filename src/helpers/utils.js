@@ -3,14 +3,14 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function transactionCreation(
-  payload = [{}],
-  userid = "" || 0,
-  workflowId = "" || 0
+  dataInArrayOfObject,
+  userid,
+  workflowId
 ) {
   return await prisma.$transaction(async (prisma) => {
     let products = [];
 
-    payload.forEach(async (item) => {
+    dataInArrayOfObject.forEach(async (item) => {
       const createdProduct = await prisma.products.create({
         data: item,
       });
@@ -20,8 +20,10 @@ export async function transactionCreation(
     const orders = await prisma.orders.create({
       data: {
         AuthorId: Number(userid),
-        qty: getTotal(payload, "qty"),
-        totalAmount: getTotal(payload, "price") * getTotal(payload, "qty"),
+        qty: getTotal(dataInArrayOfObject, "qty"),
+        totalAmount:
+          getTotal(dataInArrayOfObject, "price") *
+          getTotal(dataInArrayOfObject, "qty"),
       },
     });
 
@@ -72,7 +74,23 @@ export async function transactionAction(orderIdInArray, workflow) {
   });
 }
 
-export async function validateTagIds(tagIds = []) {
+export async function transactionGetData(
+  entity,
+  option = { whereOption: {}, includeOption: false, skip: 0, limit: 10 }
+) {
+  const [data, count] = await prisma.$transaction([
+    prisma[entity].findMany({
+      skip: option.skip,
+      take: option.limit,
+      where: option.whereOption,
+      include: option.includeOption,
+    }),
+    prisma[entity].count({ where: option.whereOption }),
+  ]);
+  return [data, count];
+}
+
+export async function validateTagIds(tagIds) {
   const existingTags = await prisma.tags.findMany({
     where: {
       id: {
@@ -95,7 +113,7 @@ export async function validateTagIds(tagIds = []) {
   };
 }
 
-export function getTotal(array = [], typeOfTotalKey = "") {
+export function getTotal(array, typeOfTotalKey) {
   let result = 0;
 
   array.forEach((item) => {

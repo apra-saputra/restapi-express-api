@@ -5,6 +5,7 @@ import response from "../helpers/response.js";
 import {
   transactionAction,
   transactionCreation,
+  transactionGetData,
   validateTagIds,
 } from "../helpers/utils.js";
 
@@ -52,17 +53,14 @@ export default class OrderControl {
           break;
       }
 
-      const [orders, totalOrders] = await prisma.$transaction([
-        prisma.orders.findMany({
-          skip,
-          take: limit,
-          where: option,
-          include: {
-            ProductOrders: { include: { Stages: true, Products: true } },
-          },
-        }),
-        prisma.orders.count({ where: option }),
-      ]);
+      const [orders, totalOrders] = await transactionGetData("orders", {
+        skip,
+        limit,
+        whereOption: option,
+        includeOption: {
+          ProductOrders: { include: { Stages: true, Products: true } },
+        },
+      });
 
       response(
         res,

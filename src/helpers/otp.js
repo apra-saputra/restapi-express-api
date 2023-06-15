@@ -4,9 +4,9 @@ export function generateOtp() {
   return otp;
 }
 
-export function validateExpiredOtp(data = {}) {
+export function validateExpiredOtp(userDataInObject) {
   const nowTime = new Date();
-  const dataTime = new Date(data.updatedAt);
+  const dataTime = new Date(userDataInObject.updatedAt);
   const setTime = 5 * 60; // in minutes
 
   const timeDifferenceInSeconds = Math.floor(

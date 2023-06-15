@@ -3,6 +3,11 @@ import { PrismaClient } from "@prisma/client";
 import app from "../app.js";
 import response from "../helpers/response.js";
 import { validateExpiredOtp } from "../helpers/otp.js";
+import { transactionGetData } from "../helpers/utils.js";
+
+// {
+//   transactionGetData;
+// }
 
 let prisma;
 let server;
@@ -28,7 +33,7 @@ describe("Additional Test - GET / ", () => {
 describe("Additional Test - validateExpiredOtp FN", () => {
   test("should return true if OTP is expired", () => {
     const data = {
-      updatedAt: "2023-06-12T12:00:00.000Z", // Set the updatedAt value to an expired time
+      updatedAt: "2023-06-12T12:00:00.000Z",
     };
 
     const result = validateExpiredOtp(data);
@@ -38,7 +43,7 @@ describe("Additional Test - validateExpiredOtp FN", () => {
 
   test("should return false if OTP is not expired", () => {
     const now = new Date();
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000); // Set the updatedAt value to 5 minutes ago
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
     const data = {
       updatedAt: fiveMinutesAgo.toISOString(),
@@ -47,6 +52,27 @@ describe("Additional Test - validateExpiredOtp FN", () => {
     const result = validateExpiredOtp(data);
 
     expect(result).toBe(undefined);
+  });
+});
+
+describe("Additional Test - transactionGetData FN", () => {
+  test("should return data and count - with all Params", async () => {
+    const [data, count] = await transactionGetData("tags", {
+      skip: 0,
+      limit: 10,
+      includeOption: { Products: true },
+      whereOption: { id: { not: 1 } },
+    });
+
+    expect(data).toBeInstanceOf(Array);
+    expect(count).toBe(2);
+  });
+
+  test("should return data and count - without option Params", async () => {
+    const [data, count] = await transactionGetData("tags");
+
+    expect(data).toBeInstanceOf(Array);
+    expect(count).toBe(3);
   });
 });
 

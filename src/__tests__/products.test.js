@@ -201,7 +201,7 @@ describe("Products Service - Update Products Image", () => {
     expect(res.status).toBe(statusCode);
     expect(res.body).toBeInstanceOf(Object);
     expect(res.body).toHaveProperty("statusCode", statusCode);
-    expect(res.body).toHaveProperty("status", "SUCCESS UPDATE PRODUCT");
+    expect(res.body).toHaveProperty("status", "SUCCESS UPDATE IMAGE PRODUCT");
     expect(res.body).toHaveProperty("payload", expect.any(Object));
     expect(res.body.payload).toHaveProperty("data", expect.any(Object));
     expect(res.body.payload.data).toHaveProperty("id", idMock);
@@ -333,6 +333,119 @@ describe("Products Service - Delete Products", () => {
     expect(res.body).toHaveProperty("status", "ERROR");
     expect(res.body).toHaveProperty("payload", expect.any(Object));
     expect(res.body.payload).toHaveProperty("errorMessage", expect.any(String));
+  });
+
+  afterEach(async () => {
+    await prisma.products.delete({
+      where: { id: idMock },
+    });
+  });
+});
+
+describe("Products Service - Update Products", () => {
+  let tagId = 2,
+    name = "test Coca Cola",
+    description = "lorem lorem lorem lorem ",
+    quantity = 10,
+    price = 20000,
+    workflowId = 7;
+
+  beforeEach(async () => {
+    product = await prisma.products.create({
+      data: {
+        name: "Coca Cola",
+        description: "Minuman bersoda",
+        qty: 10,
+        price: 8000,
+        TagId: tagId,
+      },
+    });
+
+    idMock = product.id;
+  });
+
+  test("PUT /products/{id} - Success ", async () => {
+    const code = 200;
+    const res = await request(server)
+      .put(`/products/${idMock}`)
+      .set("Authorization", `Bearer ${accessTokenMock}`)
+      .send({ tagId, name, description, quantity, price, workflowId });
+
+    expect(res.status).toBe(code);
+    expect(res.body).toBeInstanceOf(Object);
+    expect(res.body).toHaveProperty("statusCode", code);
+    expect(res.body).toHaveProperty(
+      "status",
+      `SUCCESS UPDATE PRODUCT ID: ${idMock}`
+    );
+    expect(res.body).toHaveProperty("payload", expect.any(Object));
+    expect(res.body.payload).toHaveProperty("data", expect.any(Object));
+  });
+
+  test("PUT /products/{id} - Failed - Fail Validate typeof Input Number - tagId", async () => {
+    const code = 400;
+    const res = await request(server)
+      .put(`/products/${idMock}`)
+      .set("Authorization", `Bearer ${accessTokenMock}`)
+      .send({
+        tagId: "",
+        name,
+        description,
+        quantity,
+        price,
+        workflowId,
+      });
+
+    expect(res.status).toBe(code);
+    expect(res.body).toBeInstanceOf(Object);
+    expect(res.body).toHaveProperty("statusCode", code);
+    expect(res.body).toHaveProperty("status", "ERROR");
+    expect(res.body).toHaveProperty("payload", expect.any(Object));
+    expect(res.body.payload).toHaveProperty("errorMessage", "TAGID INVALID");
+  });
+
+  test("PUT /products/{id} - Failed - Fail Validate typeof Input String -  name", async () => {
+    const code = 400;
+    const res = await request(server)
+      .put(`/products/${idMock}`)
+      .set("Authorization", `Bearer ${accessTokenMock}`)
+      .send({
+        tagId,
+        name: "",
+        description,
+        quantity,
+        price,
+        workflowId,
+      });
+
+    expect(res.status).toBe(code);
+    expect(res.body).toBeInstanceOf(Object);
+    expect(res.body).toHaveProperty("statusCode", code);
+    expect(res.body).toHaveProperty("status", "ERROR");
+    expect(res.body).toHaveProperty("payload", expect.any(Object));
+    expect(res.body.payload).toHaveProperty("errorMessage", "NAME INVALID");
+  });
+
+  test("PUT /products/{id} - Failed - wrong action for user", async () => {
+    const code = 403;
+    const res = await request(server)
+      .put(`/products/${idMock}`)
+      .set("Authorization", `Bearer ${accessTokenMock}`)
+      .send({
+        tagId,
+        name,
+        description,
+        quantity,
+        price,
+        workflowId: 3, // action for spv
+      });
+
+    expect(res.status).toBe(code);
+    expect(res.body).toBeInstanceOf(Object);
+    expect(res.body).toHaveProperty("statusCode", code);
+    expect(res.body).toHaveProperty("status", "ERROR");
+    expect(res.body).toHaveProperty("payload", expect.any(Object));
+    expect(res.body.payload).toHaveProperty("errorMessage", "FORBIDEN");
   });
 
   afterEach(async () => {

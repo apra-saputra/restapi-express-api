@@ -7,6 +7,7 @@ const route = Router();
 route.get("/", ProductControl.getProducts);
 route.get("/download-template", ProductControl.downloadTemplateProduct);
 route.get("/:id", ProductControl.getProductById);
+route.put("/:id", ProductControl.updateProduct);
 route.patch("/:id", ProductControl.updateImageProduct);
 route.delete("/:id", ProductControl.hardDeleteProduct);
 

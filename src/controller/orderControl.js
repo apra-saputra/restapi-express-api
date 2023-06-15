@@ -7,6 +7,7 @@ import {
   transactionCreation,
   transactionGetData,
   validateTagIds,
+  validateWorkflow,
 } from "../helpers/utils.js";
 
 const prisma = new PrismaClient();
@@ -141,14 +142,7 @@ export default class OrderControl {
           message: `INVALID TAGID NUMBER ${invalidIndexes}`,
         };
 
-      const workflow = await prisma.workflows.findUnique({
-        where: { id: Number(workflowId) },
-        include: { Positions: { include: { Users: true } }, Stages: true },
-      });
-
-      // validation workflow
-      if (!workflow || workflow.Positions.id !== Number(userId))
-        throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
+      const workflow = await validateWorkflow(workflowId, userId);
 
       // creating transaction Products, Orders, RELATION TABLE
       const result = await transactionCreation(
@@ -199,8 +193,6 @@ export default class OrderControl {
         throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
 
       const result = await transactionAction(payload, workflow);
-
-      console.log({ result });
 
       response(res, 200, "SUCCESS ACTION ORDER", {
         data: { message: workflow.message },

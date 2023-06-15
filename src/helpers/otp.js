@@ -1,6 +1,5 @@
 export function generateOtp() {
   const otp = Math.round(Math.random() * 1000000);
-  console.log(otp);
   return otp;
 }
 

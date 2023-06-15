@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        Int        @id @default(autoincrement())
+  name      String
+  username  String     @unique
+  email     String     @unique
+  otp       String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Positons  Positions?
+}
+
+model Positions {
+  id        Int         @id @default(autoincrement())
+  position  String
+  active    Boolean
+  UserId    Int         @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Workflows Workflows[]
+  Orders    Orders[]
+  Stages    Stages[]
+  Users     Users       @relation(fields: [UserId], references: [id])
+}
+
+model Workflows {
+  id         Int        @id @default(autoincrement())
+  action     String
+  message    String
+  ApproverId Int
+  StageId    Int
+  active     Boolean
+  createdAt  DateTime   @default(now())
+  Stages     Stages?    @relation(fields: [StageId], references: [id])
+  Positions  Positions? @relation(fields: [ApproverId], references: [id])
+}
+
+model Stages {
+  id            Int             @id @default(autoincrement())
+  state         String
+  PositionId    Int
+  Position      Positions?      @relation(fields: [PositionId], references: [id])
+  Workflows     Workflows[]
+  ProductOrders ProductOrders[]
+}
+
+model Tags {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  Products  Products[]
+}
+
+model Products {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String          @db.Text
+  imgUrl        String?
+  qty           Int
+  price         Int
+  statusOrder   String?
+  TagId         Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ProductOrders ProductOrders[]
+  Tags          Tags?           @relation(fields: [TagId], references: [id])
+}
+
+model ProductOrders {
+  id        Int       @id @default(autoincrement())
+  ProductId Int?
+  OrderId   Int?
+  StageId   Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Products  Products? @relation(fields: [ProductId], references: [id])
+  Orders    Orders?   @relation(fields: [OrderId], references: [id])
+  Stages    Stages?   @relation(fields: [StageId], references: [id])
+}
+
+model Orders {
+  id            Int             @id @default(autoincrement())
+  AuthorId      Int
+  qty           Int
+  totalAmount   Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  ProductOrders ProductOrders[]
+  Author        Positions?      @relation(fields: [AuthorId], references: [id])
+}

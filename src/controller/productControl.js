@@ -1,7 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import response from "../helpers/response.js";
 import path from "path";
-import { transactionGetData } from "../helpers/utils.js";
+import {
+  transactionGetData,
+  validateInput,
+  validateWorkflow,
+} from "../helpers/utils.js";
 
 const prisma = new PrismaClient();
 
@@ -111,7 +115,7 @@ export default class ProductControl {
           where: { id: products.id },
           data: { imgUrl: url },
         });
-        response(res, 200, "SUCCESS UPDATE PRODUCT", { data });
+        response(res, 200, "SUCCESS UPDATE IMAGE PRODUCT", { data });
       });
     } catch (error) {
       next(error);
@@ -140,6 +144,34 @@ export default class ProductControl {
       });
 
       response(res, 200, "SUCCESS DELETE PRODUCT", { data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateProduct(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const { tagId, name, description, quantity, price, workflowId } =
+        req.body;
+
+      validateInput({ tagId, name, description, quantity, price });
+
+      const workflow = await validateWorkflow(workflowId, userId);
+
+      const data = await prisma.products.update({
+        where: { id: Number(req.params.id) },
+        data: {
+          name,
+          description,
+          qty: quantity,
+          price,
+          TagId: tagId,
+          statusOrder: workflow.Stages.state,
+        },
+      });
+
+      response(res, 200, `SUCCESS UPDATE PRODUCT ID: ${data.id}`, { data });
     } catch (error) {
       next(error);
     }

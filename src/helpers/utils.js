@@ -122,3 +122,40 @@ export function getTotal(array, typeOfTotalKey) {
 
   return result;
 }
+
+export function validateInput(objects) {
+  for (const key in objects) {
+    const item = objects[key];
+    const NumberKey = ["tagId", "price", "quantity"];
+
+    if (NumberKey.includes(key)) {
+      if (!item || isNaN(item)) {
+        throw {
+          name: "CUSTOM",
+          code: 400,
+          message: `${key.toUpperCase()} INVALID`,
+        };
+      }
+    } else {
+      if (!item || !item.length) {
+        throw {
+          name: "CUSTOM",
+          code: 400,
+          message: `${key.toUpperCase()} INVALID`,
+        };
+      }
+    }
+  }
+}
+
+export async function validateWorkflow(workflowId, userId) {
+  const workflow = await prisma.workflows.findFirst({
+    where: { id: Number(workflowId) },
+    include: { Positions: { include: { Users: true } }, Stages: true },
+  });
+
+  if (!workflow || workflow.Positions.id !== Number(userId))
+    throw { name: "CUSTOM", code: 403, message: "FORBIDEN" };
+
+  return workflow;
+}

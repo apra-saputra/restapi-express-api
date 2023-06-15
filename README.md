@@ -9,11 +9,15 @@ npm install
 ```
 
 ```
-npm test
+npx prisma db push
 ```
 
 ```
-npx prisma db push
+npx prisma db seed
+```
+
+```
+npm test
 ```
 
 ```
